@@ -22,9 +22,19 @@ END
 $$;
 
 -- ============================================================================
--- 2. games 스키마 생성 + 소유권을 zugzag_game에 부여
+-- 2. games 스키마 생성
+--    Supabase Cloud의 postgres는 제한된 superuser라 AUTHORIZATION 절로 다른 role
+--    소유 스키마를 만들 수 없다 (SET ROLE 권한 부재). 대신 postgres 소유로 만들고
+--    zugzag_game에 ALL 권한을 명시적으로 부여한다. DB 분리의 보안 효과는 동일.
 -- ============================================================================
-CREATE SCHEMA IF NOT EXISTS games AUTHORIZATION zugzag_game;
+CREATE SCHEMA IF NOT EXISTS games;
+GRANT ALL ON SCHEMA games TO zugzag_game;
+ALTER DEFAULT PRIVILEGES IN SCHEMA games
+  GRANT ALL ON TABLES TO zugzag_game;
+ALTER DEFAULT PRIVILEGES IN SCHEMA games
+  GRANT ALL ON SEQUENCES TO zugzag_game;
+ALTER DEFAULT PRIVILEGES IN SCHEMA games
+  GRANT ALL ON FUNCTIONS TO zugzag_game;
 
 -- ============================================================================
 -- 3. public 스키마는 SELECT만 (절대 ALTER/INSERT/UPDATE/DELETE 금지)

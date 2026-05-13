@@ -242,9 +242,10 @@ export const sessions = games.table(
   },
   (t) => [
     index("sessions_season_status_idx").on(t.seasonId, t.status),
-    // C-B fix (D24): casual_open은 크루당 1일 1개. T-M1 timezone(Asia/Seoul)은 INSERT 시점 처리.
+    // C-B fix (D24): casual_open은 크루당 1일 1개. T-M1: Asia/Seoul 고정으로 IMMUTABLE 보장.
+    // (timestamp::date 단독은 timezone-dependent → not IMMUTABLE → index 불가)
     uniqueIndex("casual_open_one_per_day")
-      .on(t.crewId, sql`(${t.startsAt}::date)`)
+      .on(t.crewId, sql`((${t.startsAt} AT TIME ZONE 'Asia/Seoul')::date)`)
       .where(sql`${t.kind} = 'casual_open' AND ${t.status} != 'closed'`),
   ],
 );

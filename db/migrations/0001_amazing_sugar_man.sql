@@ -1,0 +1,2 @@
+DROP INDEX "games"."casual_open_one_per_day";--> statement-breakpoint
+CREATE UNIQUE INDEX "casual_open_one_per_day" ON "games"."sessions" USING btree ("crew_id",(("starts_at" AT TIME ZONE 'Asia/Seoul')::date)) WHERE "games"."sessions"."kind" = 'casual_open' AND "games"."sessions"."status" != 'closed';
