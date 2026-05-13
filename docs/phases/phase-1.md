@@ -6,16 +6,19 @@
 
 ---
 
-## 1.1 도메인 모델 (Drizzle migration) ✅ 완료
+## 1.1 도메인 모델 + 검증 박제 ✅ 완료
+
+> **컨셉 변경**: scoring policy seed는 폐기. Policy는 시스템 invariant가 아니라 운영자 자율 룰북 — P1.2-PolicyCRUD admin UI에서 생성. 기본값은 `src/lib/policies/default-template.ts` 상수로 보관.
 
 - [x] `games.*` schema 마이그레이션 (Phase 0.3 완료)
 - [x] **zod 스키마 공유 모듈** (`src/lib/validation/*` 9파일 + barrel + 27 unit tests)
-- [x] **기본 점수 정책 시드** (`src/lib/db/seed.ts` — `--crew-id` + `--provider-id` argv, 한/영 label aliases, idempotent. 사용자 수동 실행 필요)
-- [x] **`scoring_policies (crew_id, name)` UNIQUE migration 0002** (race-safe idempotency. 사용자 SQL Editor 적용 필요)
+- [x] **scoring policy 기본 템플릿 상수** (`src/lib/policies/default-template.ts` — FEATURE_SPEC §3.1 점수 + 한/영 라벨 aliases. P1.2-PolicyCRUD가 import)
+- [x] **`scoring_policies (crew_id, name)` UNIQUE migration 0002** (race-safe idempotency. Supabase SQL Editor 적용 완료)
 - [x] **partial UNIQUE 통합 테스트** (`tests/integration/partial-unique.test.ts` — ranked first_send_only 23505 + ON CONFLICT DO NOTHING, casual_open 1/day)
 - [x] **cross-schema 조인 통합 테스트** (`tests/integration/cross-schema-join.test.ts` — sends↔users, sessions↔crews)
-- [x] **POSTGRES_URL_ADMIN 가드** (.env.example + ESLint no-restricted-syntax dot/bracket/destructure 3종)
+- [x] **POSTGRES_URL_ADMIN 가드** (integration test 전용. .env.example + ESLint no-restricted-syntax dot/bracket/destructure 3종)
 - [x] **04-cross-schema-fks.sql 주석 정정** (15 → 16)
+- [x] ~~기본 점수 정책 seed~~ → 폐기 (P1.2-PolicyCRUD 이관)
 
 ## 1.2 운영자 화면 (leader/admin)
 

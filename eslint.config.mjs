@@ -33,7 +33,6 @@ const eslintConfig = defineConfig([
   },
   {
     files: ["src/**/*.ts", "src/**/*.tsx"],
-    ignores: ["src/lib/db/seed.ts"],
     rules: {
       "no-restricted-syntax": ["error", ...POSTGRES_URL_ADMIN_GUARD],
     },

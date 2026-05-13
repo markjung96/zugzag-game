@@ -138,20 +138,18 @@ Phase 0.4 완료 산출물:
 Phase 1.1 완료 산출물:
 
 - zod 스키마 9개 + barrel (`src/lib/validation/*.ts`) — 모든 API 입력 검증 SSOT
-- 기본 점수 정책 seed (`src/lib/db/seed.ts` — CLI argv, 한/영 label aliases, idempotent)
-- `scoring_policies (crew_id, name)` UNIQUE migration 0002 (race-safe)
+- scoring policy 기본 템플릿 상수 (`src/lib/policies/default-template.ts` — 점수 권장값 + 한/영 라벨 aliases; P1.2-PolicyCRUD UI에서 import)
+- `scoring_policies (crew_id, name)` UNIQUE migration 0002 (race-safe) — Supabase 적용 완료
 - ColorScores SSOT 통일 (`games.ts` 3-필드 객체로 일원화, `src/types/index.ts` re-export)
 - Integration 테스트 setup + partial UNIQUE + cross-schema 조인 (`tests/integration/*`)
-- POSTGRES_URL_ADMIN 보안 가드 (ESLint no-restricted-syntax 3종 dot/bracket/destructure)
+- POSTGRES_URL_ADMIN 보안 가드 (integration test 전용. ESLint no-restricted-syntax 3종)
 - vitest projects 분리 (unit / integration) + design-handoff/ ESLint ignore
 - 27 unit tests pass / type-check + lint + format 모두 green
 
+> **컨셉 변경**: 초기 plan의 "기본 점수 정책 seed"는 폐기. Scoring policy는 시스템 invariant가 아니라 운영자 자율 룰북 — P1.2-PolicyCRUD admin UI에서 생성. 기본값은 `src/lib/policies/default-template.ts` 상수 import로 처리.
+
 ⏳ 사용자 액션 필요:
 
-1. **DB 진단 D1~D8 실행** (Supabase SQL Editor) — `.omc/plans/planloop-20260513-192259/plan.md` §0-1 참조
-2. **migration 0002 적용** — `db/migrations/0002_sharp_proemial_gods.sql` 내용 SQL Editor에서 실행
-3. **`.env.local`에 `POSTGRES_URL_ADMIN` 추가** — postgres superuser connection string
-4. **seed 실행**: `pnpm db:seed --crew-id <uuid> --provider-id <uuid>`
-5. **integration test 실행**: `pnpm test:integration`
+1. **integration test 실행** (선택): `pnpm test:integration` — POSTGRES_URL_ADMIN 이미 .env.local에 추가됨
 
-다음: Phase 1.4 (라이브 보드) 우선 — P1 KPI "5초 반영" 조기 검증. → Phase 1.3 (멤버 화면) → Phase 1.2 (운영자) → Phase 1.5/1.6.
+다음: Phase 1.4 (라이브 보드) 우선 — P1 KPI "5초 반영" 조기 검증. → Phase 1.3 (멤버 화면) → Phase 1.2 (운영자 + PolicyCRUD가 기본 정책 생성 UI 담당) → Phase 1.5/1.6.

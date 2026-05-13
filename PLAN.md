@@ -505,27 +505,30 @@ SELECT tc.constraint_name FROM information_schema.table_constraints tc
 
 ## 16. Phase 1 task 체크리스트
 
-### §1.1 도메인 시드 ✅ 완료
+### §1.1 도메인 모델 + 검증 박제 ✅ 완료
 
-| Task ID            | 무엇                                                                                                              | 파일                                                                 | 의존                         | 검증                                                                                    | 상태                     |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ---------------------------- | --------------------------------------------------------------------------------------- | ------------------------ |
-| P1.1-Validation    | zod 스키마 공유 모듈 (color-scores/seasons/policies/cycles/walls/problems/sessions/sends/display-tokens + barrel) | `src/lib/validation/*.ts` (9 + index)                                | 없음                         | 27 unit tests pass (color-scores 5 / seasons 5 / sends 5 / display-tokens 4 / errors 8) | ✅ 완료                  |
-| P1.1-Seed          | 기본 점수 정책 시드 (CLI + 한/영 label aliases + idempotent)                                                      | `src/lib/db/seed.ts`                                                 | DB 적용 + POSTGRES_URL_ADMIN | 사용자 실행 필요: `pnpm db:seed --crew-id <uuid> --provider-id <uuid>`                  | ✅ 코드 / ⏳ 사용자 실행 |
-| P1.1-Migration0002 | `scoring_policies (crew_id, name)` UNIQUE (race-safe)                                                             | `db/migrations/0002_sharp_proemial_gods.sql` + games.ts schema       | 없음                         | 사용자 Supabase SQL Editor 적용 필요                                                    | ✅ 코드 / ⏳ 사용자 적용 |
-| P1.1-Integration   | partial UNIQUE + cross-schema 조인 통합 테스트                                                                    | `tests/integration/{setup,partial-unique,cross-schema-join}.test.ts` | POSTGRES_URL_ADMIN           | 사용자 실행 필요: `pnpm test:integration`                                               | ✅ 코드 / ⏳ 사용자 실행 |
-| P1.1-AdminGuard    | POSTGRES_URL_ADMIN ESLint guard (dot/bracket/destructure 3종)                                                     | `eslint.config.mjs`, `.env.example`                                  | 없음                         | lint pass + seed.ts/setup.ts만 ignores                                                  | ✅ 완료                  |
+> **컨셉 변경 (2026-05-13)**: 초기 plan의 `P1.1-Seed`는 폐기. scoring policy는 시스템 invariant가 아니라 운영자 자율 룰북 — DB seed에 박는 게 아니라 **P1.2-PolicyCRUD admin UI에서 생성**. 기본값(10/20/35/...)은 `src/lib/policies/default-template.ts` 상수로 보관해 UI "기본값 불러오기" 버튼에서 import.
+
+| Task ID             | 무엇                                                                                                              | 파일                                                                 | 의존               | 검증                                                                                    | 상태                     |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- | ------------------ | --------------------------------------------------------------------------------------- | ------------------------ |
+| P1.1-Validation     | zod 스키마 공유 모듈 (color-scores/seasons/policies/cycles/walls/problems/sessions/sends/display-tokens + barrel) | `src/lib/validation/*.ts` (9 + index)                                | 없음               | 27 unit tests pass (color-scores 5 / seasons 5 / sends 5 / display-tokens 4 / errors 8) | ✅ 완료                  |
+| P1.1-PolicyTemplate | scoring policy 기본 템플릿 상수 (점수 권장값 + 라벨 aliases)                                                      | `src/lib/policies/default-template.ts`                               | 없음               | type-check + lint pass. P1.2-PolicyCRUD에서 import 예정.                                | ✅ 완료                  |
+| P1.1-Migration0002  | `scoring_policies (crew_id, name)` UNIQUE (race-safe)                                                             | `db/migrations/0002_sharp_proemial_gods.sql` + games.ts schema       | 없음               | Supabase SQL Editor 적용 완료 (사용자 확인)                                             | ✅ 완료                  |
+| P1.1-Integration    | partial UNIQUE + cross-schema 조인 통합 테스트                                                                    | `tests/integration/{setup,partial-unique,cross-schema-join}.test.ts` | POSTGRES_URL_ADMIN | 사용자 실행 필요: `pnpm test:integration`                                               | ✅ 코드 / ⏳ 사용자 실행 |
+| P1.1-AdminGuard     | POSTGRES_URL_ADMIN ESLint guard (dot/bracket/destructure 3종)                                                     | `eslint.config.mjs`, `.env.example`                                  | 없음               | lint pass + tests/integration/setup.ts만 ignores                                        | ✅ 완료                  |
+| ~~P1.1-Seed~~       | ~~기본 점수 정책 시드~~ → 폐기, P1.2-PolicyCRUD로 이관                                                            | ~~`src/lib/db/seed.ts`~~ → `src/lib/policies/default-template.ts`    | -                  | -                                                                                       | ❌ 폐기                  |
 
 ### §1.2 운영자 화면
 
-| Task ID          | 무엇                 | 파일                                                             | 의존                           | 검증                               |
-| ---------------- | -------------------- | ---------------------------------------------------------------- | ------------------------------ | ---------------------------------- |
-| P1.2-SeasonCRUD  | 시즌 CRUD 화면 + API | `src/app/(auth)/c/[crew]/admin/seasons/`, `src/app/api/seasons/` | P0.4-NextAuth, P1.1-Validation | 시즌 생성→조회→수정→close 흐름     |
-| P1.2-PolicyCRUD  | 정책 CRUD            | api + 화면                                                       | P1.2-SeasonCRUD                | 정책 연결 시즌 확인                |
-| P1.2-CycleMgmt   | 세팅 회차 관리       | api + 화면                                                       | 없음                           | active 1개 제약 확인               |
-| P1.2-WallMgmt    | 벽 관리              | api + 화면                                                       | 없음                           | UNIQUE (gym, name) 확인            |
-| P1.2-ProblemAdd  | 30초 문제 등록 UX    | api + 화면 + photo upload                                        | P1.2-CycleMgmt                 | MIME double check + 30초 이내 등록 |
-| P1.2-QuickRanked | 즉석 랭크전 열기     | P7 화면 + POST sessions                                          | P1.2-SeasonCRUD                | ranked 세션 생성 확인              |
-| P1.2-TVToken     | TV 토큰 발급         | P8 화면 + POST display-tokens                                    | 없음                           | 토큰 생성 + QR 표시                |
+| Task ID          | 무엇                                                                                                           | 파일                                                             | 의존                           | 검증                                      |
+| ---------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------------ | ----------------------------------------- |
+| P1.2-SeasonCRUD  | 시즌 CRUD 화면 + API                                                                                           | `src/app/(auth)/c/[crew]/admin/seasons/`, `src/app/api/seasons/` | P0.4-NextAuth, P1.1-Validation | 시즌 생성→조회→수정→close 흐름            |
+| P1.2-PolicyCRUD  | 정책 CRUD ("기본값 불러오기" 버튼 → `src/lib/policies/default-template.ts` import + provider_colors 자동 매핑) | api + 화면                                                       | P1.2-SeasonCRUD                | 정책 연결 시즌 확인 + 기본값 prefill 동작 |
+| P1.2-CycleMgmt   | 세팅 회차 관리                                                                                                 | api + 화면                                                       | 없음                           | active 1개 제약 확인                      |
+| P1.2-WallMgmt    | 벽 관리                                                                                                        | api + 화면                                                       | 없음                           | UNIQUE (gym, name) 확인                   |
+| P1.2-ProblemAdd  | 30초 문제 등록 UX                                                                                              | api + 화면 + photo upload                                        | P1.2-CycleMgmt                 | MIME double check + 30초 이내 등록        |
+| P1.2-QuickRanked | 즉석 랭크전 열기                                                                                               | P7 화면 + POST sessions                                          | P1.2-SeasonCRUD                | ranked 세션 생성 확인                     |
+| P1.2-TVToken     | TV 토큰 발급                                                                                                   | P8 화면 + POST display-tokens                                    | 없음                           | 토큰 생성 + QR 표시                       |
 
 ### §1.3 멤버 화면
 
@@ -590,9 +593,12 @@ Phase 0.4 (harness + auth + supabase)
   │
   ▼ 사용자 DB 적용 (db/setup/*.sql) ← gate
   │
-Phase 1.1 (도메인 시드)
+Phase 1.1 (도메인 모델 + 검증 박제)
   ├─ P1.1-Validation
-  └─ P1.1-Seed
+  ├─ P1.1-PolicyTemplate (default-template.ts 상수)
+  ├─ P1.1-Migration0002 (scoring_policies UNIQUE)
+  ├─ P1.1-AdminGuard
+  └─ P1.1-Integration
   │
   ▼
 Phase 1.4 (라이브 보드 핵심 — P1 KPI)
