@@ -17,14 +17,14 @@ import type { ColorScores } from "./schema/games";
 type HoldColor = "white" | "yellow" | "orange" | "green" | "blue" | "red" | "purple" | "black";
 
 const LABEL_ALIASES: Record<HoldColor, string[]> = {
-  white: ["white", "흰", "흰색", "백색"],
-  yellow: ["yellow", "노랑", "노란", "노"],
-  orange: ["orange", "주황", "주"],
-  green: ["green", "초록", "초"],
-  blue: ["blue", "파랑", "파"],
-  red: ["red", "빨강", "빨"],
-  purple: ["purple", "보라", "보"],
-  black: ["black", "검정", "검"],
+  white: ["white", "흰색", "흰", "백색"],
+  yellow: ["yellow", "노란색", "노랑", "노란", "노"],
+  orange: ["orange", "주황색", "주황", "주"],
+  green: ["green", "초록색", "초록", "초"],
+  blue: ["blue", "파란색", "파랑", "파"],
+  red: ["red", "빨간색", "빨강", "빨"],
+  purple: ["purple", "보라색", "보라", "보"],
+  black: ["black", "검은색", "검정색", "검정", "검"],
 };
 
 const COLOR_SCORES: Record<HoldColor, number> = {
