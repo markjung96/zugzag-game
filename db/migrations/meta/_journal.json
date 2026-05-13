@@ -15,6 +15,13 @@
       "when": 1778664360712,
       "tag": "0001_amazing_sugar_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778670256032,
+      "tag": "0002_sharp_proemial_gods",
+      "breakpoints": true
     }
   ]
 }

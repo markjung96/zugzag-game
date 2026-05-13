@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "scoring_policies_crew_name_unique" ON "games"."scoring_policies" USING btree ("crew_id","name");

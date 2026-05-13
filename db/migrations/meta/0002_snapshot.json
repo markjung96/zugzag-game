@@ -1,6 +1,6 @@
 {
-  "id": "2dab9567-e299-45aa-b234-f0897a46235f",
-  "prevId": "61e8b2ee-c37e-44bf-9c66-ce0707e11806",
+  "id": "9480ad58-2f30-4511-b86a-3ff30b97dd11",
+  "prevId": "2dab9567-e299-45aa-b234-f0897a46235f",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -319,7 +319,29 @@
           "default": "now()"
         }
       },
-      "indexes": {},
+      "indexes": {
+        "scoring_policies_crew_name_unique": {
+          "name": "scoring_policies_crew_name_unique",
+          "columns": [
+            {
+              "expression": "crew_id",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "name",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
       "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},

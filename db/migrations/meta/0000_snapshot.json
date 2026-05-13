@@ -109,12 +109,8 @@
           "tableFrom": "display_tokens",
           "tableTo": "seasons",
           "schemaTo": "games",
-          "columnsFrom": [
-            "season_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["season_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -123,12 +119,8 @@
           "tableFrom": "display_tokens",
           "tableTo": "sessions",
           "schemaTo": "games",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -138,9 +130,7 @@
         "display_tokens_token_unique": {
           "name": "display_tokens_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -257,12 +247,8 @@
           "tableFrom": "problems",
           "tableTo": "setting_cycles",
           "schemaTo": "games",
-          "columnsFrom": [
-            "setting_cycle_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["setting_cycle_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -271,12 +257,8 @@
           "tableFrom": "problems",
           "tableTo": "walls",
           "schemaTo": "games",
-          "columnsFrom": [
-            "wall_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["wall_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -453,12 +435,8 @@
           "tableFrom": "seasons",
           "tableTo": "scoring_policies",
           "schemaTo": "games",
-          "columnsFrom": [
-            "scoring_policy_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["scoring_policy_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -532,12 +510,8 @@
           "tableFrom": "send_revisions",
           "tableTo": "sends",
           "schemaTo": "games",
-          "columnsFrom": [
-            "send_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["send_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -715,12 +689,8 @@
           "tableFrom": "sends",
           "tableTo": "problems",
           "schemaTo": "games",
-          "columnsFrom": [
-            "problem_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["problem_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -729,12 +699,8 @@
           "tableFrom": "sends",
           "tableTo": "seasons",
           "schemaTo": "games",
-          "columnsFrom": [
-            "season_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["season_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         },
@@ -743,12 +709,8 @@
           "tableFrom": "sends",
           "tableTo": "sessions",
           "schemaTo": "games",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -796,12 +758,8 @@
           "tableFrom": "session_participants",
           "tableTo": "sessions",
           "schemaTo": "games",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -810,12 +768,8 @@
           "tableFrom": "session_participants",
           "tableTo": "session_teams",
           "schemaTo": "games",
-          "columnsFrom": [
-            "team_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["team_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -823,10 +777,7 @@
       "compositePrimaryKeys": {
         "session_participants_session_id_user_id_pk": {
           "name": "session_participants_session_id_user_id_pk",
-          "columns": [
-            "session_id",
-            "user_id"
-          ]
+          "columns": ["session_id", "user_id"]
         }
       },
       "uniqueConstraints": {},
@@ -871,12 +822,8 @@
           "tableFrom": "session_teams",
           "tableTo": "sessions",
           "schemaTo": "games",
-          "columnsFrom": [
-            "session_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["session_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1023,12 +970,8 @@
           "tableFrom": "sessions",
           "tableTo": "seasons",
           "schemaTo": "games",
-          "columnsFrom": [
-            "season_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["season_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -1174,63 +1117,37 @@
     "games.problem_status": {
       "name": "problem_status",
       "schema": "games",
-      "values": [
-        "active",
-        "archived"
-      ]
+      "values": ["active", "archived"]
     },
     "games.season_status": {
       "name": "season_status",
       "schema": "games",
-      "values": [
-        "draft",
-        "active",
-        "closed"
-      ]
+      "values": ["draft", "active", "closed"]
     },
     "games.send_revision_action": {
       "name": "send_revision_action",
       "schema": "games",
-      "values": [
-        "create",
-        "update",
-        "cancel",
-        "restore"
-      ]
+      "values": ["create", "update", "cancel", "restore"]
     },
     "games.session_kind": {
       "name": "session_kind",
       "schema": "games",
-      "values": [
-        "ranked",
-        "casual_open"
-      ]
+      "values": ["ranked", "casual_open"]
     },
     "games.session_status": {
       "name": "session_status",
       "schema": "games",
-      "values": [
-        "scheduled",
-        "live",
-        "closed"
-      ]
+      "values": ["scheduled", "live", "closed"]
     },
     "games.setting_cycle_status": {
       "name": "setting_cycle_status",
       "schema": "games",
-      "values": [
-        "active",
-        "closed"
-      ]
+      "values": ["active", "closed"]
     },
     "games.team_mode": {
       "name": "team_mode",
       "schema": "games",
-      "values": [
-        "individual",
-        "team",
-        "crew_vs_crew"
-      ]
+      "values": ["individual", "team", "crew_vs_crew"]
     }
   },
   "schemas": {

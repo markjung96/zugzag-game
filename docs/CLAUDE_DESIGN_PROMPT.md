@@ -16,6 +16,7 @@
 # 1. ⚠️ Claude Design Default Style 명시적 OVERRIDE
 
 **금지 (Opus 4.7 기본값에서 모두 제거)**:
+
 - ❌ Warm cream / off-white / beige 배경
 - ❌ Serif display 폰트 (Garamond, Bodoni, Playfair 등)
 - ❌ Italic word-accent
@@ -23,6 +24,7 @@
 - ❌ Editorial / hospitality 톤
 
 **강제 (이걸로 교체)**:
+
 - ✅ **Dark mode 전용** — `#0A0A0B` canvas, `#16161A` surface
 - ✅ **Sans-serif 한국어 우선** — Pretendard (한글) + Inter (영문/숫자)
 - ✅ **Roman, no italic** — italic 사용 금지 (강조는 weight + size로)
@@ -149,6 +151,7 @@ sticky 100 / fab 200 / dropdown 300 / modal 400 / toast 500 / tv-overlay 600
 11. **system-ui** as primary display font
 
 추가 zugzag-game-specific 금지:
+
 - ❌ "밝고 활기찬" 톤 (어두운 짐 환경 + 어두운 긴장감으로 강제)
 - ❌ App UI를 stacked card 모음으로 (카드는 카드 자체가 인터랙션일 때만)
 - ❌ 사진 위 텍스트 (LiveBoard, OG 모두 데이터 자체가 디자인)
@@ -733,6 +736,7 @@ Avatar privacy:
 # 9. 사용자 여정 (디자인이 풀어야 할 3 path)
 
 ## Path A — 멤버 첫 send
+
 ```
 P5 진입 → casual 첫 풀이 → P3 Step 1 (E1 prefill 없음, 풀 표시)
 → Step 2 → Step 3 (CASUAL badge 상단, "기록만 남아요") → 토스트 "오늘 5건째 풀이 기록!"
@@ -740,6 +744,7 @@ P5 진입 → casual 첫 풀이 → P3 Step 1 (E1 prefill 없음, 풀 표시)
 ```
 
 ## Path B — 호스트 즉석 랭크전 → TV
+
 ```
 P5 leader hero → "즉석 랭크전 열기" CTA → P7 모달 (어두운 긴장감) → "지금 시작"
 → 같은 모달이 transform → "시작!" + QR 큰 화면 + URL → 호스트 phone으로 TV 가서 입력
@@ -747,6 +752,7 @@ P5 leader hero → "즉석 랭크전 열기" CTA → P7 모달 (어두운 긴장
 ```
 
 ## Path C — 시즌 종료 OG 공유
+
 ```
 호스트 시즌 close → TV에 P10 ceremony state 5초 overlay → P11 챔피언 카드 자동 생성
 → 멤버 P4 SeasonDetail 하단 "내 카드 공유" CTA → P11 개인 카드 → 공유 sheet

@@ -20,13 +20,13 @@
 > 따라서 **zugzag DB == Supabase Postgres == Supabase Realtime이 보는 DB**.
 > zugzag-game은 **별도 Supabase 프로젝트를 만들지 않는다.**
 
-| 누가 | 어디서 | 무엇을 |
-|---|---|---|
-| zugzag (본체) | `public.*` | CRUD (정상 운영) |
-| zugzag (본체) | `games.*` | ❌ 절대 접근 안 함 |
-| zugzag-game | `public.*` | **SELECT만** (인증/조회 목적) |
-| zugzag-game | `public.*` | ❌ INSERT/UPDATE/DELETE/ALTER 금지 |
-| zugzag-game | `games.*` | CRUD (자체 운영) |
+| 누가          | 어디서     | 무엇을                             |
+| ------------- | ---------- | ---------------------------------- |
+| zugzag (본체) | `public.*` | CRUD (정상 운영)                   |
+| zugzag (본체) | `games.*`  | ❌ 절대 접근 안 함                 |
+| zugzag-game   | `public.*` | **SELECT만** (인증/조회 목적)      |
+| zugzag-game   | `public.*` | ❌ INSERT/UPDATE/DELETE/ALTER 금지 |
+| zugzag-game   | `games.*`  | CRUD (자체 운영)                   |
 
 ---
 
@@ -79,33 +79,33 @@ CREATE SCHEMA IF NOT EXISTS games AUTHORIZATION zugzag_game;
 Supabase Realtime은 PostgreSQL publication에 등록된 테이블의 변경(WAL)만 push한다.
 **민감한 `public.*` 테이블은 publication에서 제외**한다. `games.*` 중에서도 라이브 보드에 필요한 것만 노출.
 
-| 테이블 | publication 포함? | 비고 |
-|---|---|---|
-| `games.sends` | ✅ | 라이브 보드의 핵심 신호 |
-| `games.send_revisions` | ✅ | 취소/수정 이벤트 반영 |
-| `games.sessions` | ✅ | 세션 status 변경 (scheduled→live→closed). **C-C 결정 (D25)**: `casual_open` 이벤트도 publication에 포함 (row filter 안 함). 클라이언트가 `kind='ranked'`만 표시 처리. P2 "공개 타임라인" 원칙 정합 — casual도 같은 크루 안에선 가시화 OK. |
-| `games.seasons` | ✅ | E8 풀스크린 의식 카드용 상태 전환 감지 (draft→active→closed) |
-| `games.problems` | ❌ | 잦은 변경 없음. 클라이언트에서 React Query로 페치 |
-| `games.scoring_policies` | ❌ | 시즌 단위 안정 |
-| `games.display_tokens` | ❌ | auth artifact, TV 토큰 노출 금지 |
-| `public.*` 전체 | ❌ | Realtime 노출 금지 |
+| 테이블                   | publication 포함? | 비고                                                                                                                                                                                                                                      |
+| ------------------------ | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `games.sends`            | ✅                | 라이브 보드의 핵심 신호                                                                                                                                                                                                                   |
+| `games.send_revisions`   | ✅                | 취소/수정 이벤트 반영                                                                                                                                                                                                                     |
+| `games.sessions`         | ✅                | 세션 status 변경 (scheduled→live→closed). **C-C 결정 (D25)**: `casual_open` 이벤트도 publication에 포함 (row filter 안 함). 클라이언트가 `kind='ranked'`만 표시 처리. P2 "공개 타임라인" 원칙 정합 — casual도 같은 크루 안에선 가시화 OK. |
+| `games.seasons`          | ✅                | E8 풀스크린 의식 카드용 상태 전환 감지 (draft→active→closed)                                                                                                                                                                              |
+| `games.problems`         | ❌                | 잦은 변경 없음. 클라이언트에서 React Query로 페치                                                                                                                                                                                         |
+| `games.scoring_policies` | ❌                | 시즌 단위 안정                                                                                                                                                                                                                            |
+| `games.display_tokens`   | ❌                | auth artifact, TV 토큰 노출 금지                                                                                                                                                                                                          |
+| `public.*` 전체          | ❌                | Realtime 노출 금지                                                                                                                                                                                                                        |
 
 설정 위치: Supabase 대시보드 → Database → Replication → `supabase_realtime` publication.
 
-## RLS 정책 (games.*)
+## RLS 정책 (games.\*)
 
 `games.*` 모든 테이블에 RLS 활성화. 정책의 큰 그림:
 
-| 테이블 | SELECT | INSERT | UPDATE/DELETE |
-|---|---|---|---|
-| `games.seasons` | 같은 크루 멤버 | 크루장/admin | 크루장/admin |
-| `games.scoring_policies` | 같은 크루 멤버 | 크루장/admin | 크루장/admin |
-| `games.sessions` | 같은 크루 멤버 | 크루장/admin | 크루장/admin |
-| `games.session_participants` | 같은 크루 멤버 | 본인 또는 크루장 | 본인 또는 크루장 |
-| `games.problems` | 같은 크루의 시즌 암장 | 크루장/admin | 크루장/admin |
-| `games.sends` | 같은 시즌의 같은 크루 멤버 | 본인(`user_id = auth.uid()`) | 본인 |
-| `games.send_revisions` | 해당 send의 SELECT 가능자 | service-role only | ❌ (RLS UPDATE/DELETE USING false, append-only) |
-| `games.display_tokens` | 토큰 holder (비인증 `/tv/{token}`) | 운영자 | 운영자 (revoke만) |
+| 테이블                       | SELECT                             | INSERT                       | UPDATE/DELETE                                   |
+| ---------------------------- | ---------------------------------- | ---------------------------- | ----------------------------------------------- |
+| `games.seasons`              | 같은 크루 멤버                     | 크루장/admin                 | 크루장/admin                                    |
+| `games.scoring_policies`     | 같은 크루 멤버                     | 크루장/admin                 | 크루장/admin                                    |
+| `games.sessions`             | 같은 크루 멤버                     | 크루장/admin                 | 크루장/admin                                    |
+| `games.session_participants` | 같은 크루 멤버                     | 본인 또는 크루장             | 본인 또는 크루장                                |
+| `games.problems`             | 같은 크루의 시즌 암장              | 크루장/admin                 | 크루장/admin                                    |
+| `games.sends`                | 같은 시즌의 같은 크루 멤버         | 본인(`user_id = auth.uid()`) | 본인                                            |
+| `games.send_revisions`       | 해당 send의 SELECT 가능자          | service-role only            | ❌ (RLS UPDATE/DELETE USING false, append-only) |
+| `games.display_tokens`       | 토큰 holder (비인증 `/tv/{token}`) | 운영자                       | 운영자 (revoke만)                               |
 
 - 크루 멤버십 검증은 `public.crew_members` 조인 함수로 헬퍼화: `games.is_crew_member(crew_id, user_id) returns boolean`
 - 정책은 Supabase SQL 마이그레이션에 포함 (코드와 함께 버전 관리)

@@ -29,25 +29,29 @@
 ## 1. 인증 & 세션
 
 ### 개요
+
 zugzag-game은 **자체 로그인 화면이 없다.** zugzag 본체의 NextAuth 세션을 그대로 사용한다.
 
 ### 동작
+
 - 미인증 상태로 `games.zugzag.com/*` 접근 시 → `https://zugzag.com/login?callbackUrl={원래 URL}` 로 302 리다이렉트
 - 로그인 후 zugzag NextAuth가 쿠키 `domain=.zugzag.com`으로 세션 발급 → 양쪽 도메인에서 자동 인식
 - 로그아웃은 zugzag 본체에서만 가능 (zugzag-game에는 로그아웃 버튼만 두고 zugzag의 logout 엔드포인트 호출)
 
 ### 권한 모델
+
 zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 
-| 액션 | leader | admin | member |
-|---|---|---|---|
-| 시즌/세션/정책 CRUD | ✅ | ✅ | ❌ |
-| 벽/문제 등록 | ✅ | ✅ | ❌ |
-| 본인 완등 기록 | ✅ | ✅ | ✅ |
-| 본인 기록 수정/취소 | ✅ | ✅ | ✅ |
-| 타인 기록 수정/취소 | ❌ | ❌ | ❌ |
+| 액션                | leader | admin | member |
+| ------------------- | ------ | ----- | ------ |
+| 시즌/세션/정책 CRUD | ✅     | ✅    | ❌     |
+| 벽/문제 등록        | ✅     | ✅    | ❌     |
+| 본인 완등 기록      | ✅     | ✅    | ✅     |
+| 본인 기록 수정/취소 | ✅     | ✅    | ✅     |
+| 타인 기록 수정/취소 | ❌     | ❌    | ❌     |
 
 ### 비즈니스 규칙
+
 - 게임 진입 시 사용자가 속한 크루 목록 조회 → 1개면 자동 진입, 다수면 선택 화면
 - 크루 미가입 사용자는 안내 화면으로 라우팅 (zugzag로 가서 가입하라)
 
@@ -56,26 +60,30 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 ## 2. 시즌
 
 ### 개요
+
 크루 단위의 상시 누적 점수 단위. 1크루 동시에 active 시즌 1개. 시즌 종료 시 점수 freeze.
 
 ### 화면
-| 경로 | 화면명 | 권한 | 설명 |
-|---|---|---|---|
-| `/c/{crew}/seasons` | SeasonListPage | crew member | 과거+현재 시즌 목록 |
-| `/c/{crew}/seasons/{id}` | SeasonDetailPage | crew member | 시즌 랭킹 + 기간 + 정책 요약 |
-| `/c/{crew}/seasons/new` | SeasonCreatePage | leader/admin | 시즌 생성 |
-| `/c/{crew}/seasons/{id}/edit` | SeasonEditPage | leader/admin | 시즌 정보/정책 편집 |
+
+| 경로                          | 화면명           | 권한         | 설명                         |
+| ----------------------------- | ---------------- | ------------ | ---------------------------- |
+| `/c/{crew}/seasons`           | SeasonListPage   | crew member  | 과거+현재 시즌 목록          |
+| `/c/{crew}/seasons/{id}`      | SeasonDetailPage | crew member  | 시즌 랭킹 + 기간 + 정책 요약 |
+| `/c/{crew}/seasons/new`       | SeasonCreatePage | leader/admin | 시즌 생성                    |
+| `/c/{crew}/seasons/{id}/edit` | SeasonEditPage   | leader/admin | 시즌 정보/정책 편집          |
 
 ### API
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/crews/{crewId}/seasons` | crew | 시즌 목록 |
-| POST | `/api/crews/{crewId}/seasons` | leader/admin | 시즌 생성 |
-| GET | `/api/seasons/{id}` | crew | 시즌 상세 |
-| PATCH | `/api/seasons/{id}` | leader/admin | 시즌 정보 수정 (이름/기간) |
-| POST | `/api/seasons/{id}/close` | leader/admin | 시즌 종료 (freeze) |
+
+| Method | Path                          | 권한         | 설명                       |
+| ------ | ----------------------------- | ------------ | -------------------------- |
+| GET    | `/api/crews/{crewId}/seasons` | crew         | 시즌 목록                  |
+| POST   | `/api/crews/{crewId}/seasons` | leader/admin | 시즌 생성                  |
+| GET    | `/api/seasons/{id}`           | crew         | 시즌 상세                  |
+| PATCH  | `/api/seasons/{id}`           | leader/admin | 시즌 정보 수정 (이름/기간) |
+| POST   | `/api/seasons/{id}/close`     | leader/admin | 시즌 종료 (freeze)         |
 
 ### 비즈니스 규칙
+
 - 시즌 생성 시 점수 정책 ID를 반드시 지정 (없으면 크루 기본 정책 자동 생성)
 - 시즌 status: `draft` / `active` / `closed`
 - 한 크루에 동시에 `active` 1개만 허용 (`UNIQUE(crew_id) WHERE status='active'` partial index)
@@ -88,46 +96,51 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 ## 3. 점수 정책
 
 ### 개요
+
 색상(난이도) → 점수 매핑. 시즌 단위로 결정되며 시즌 시작 후엔 수정 불가.
 
 ### 데이터 구조
+
 ```jsonc
 // scoring_policies.color_scores (jsonb)
 {
-  "first_send_only": true,    // 같은 문제 1회만 인정
-  "team_top_n": 5,             // 팀전 시 상위 N명 합산 (null이면 전원)
+  "first_send_only": true, // 같은 문제 1회만 인정
+  "team_top_n": 5, // 팀전 시 상위 N명 합산 (null이면 전원)
   "color_scores": {
     // provider_color_id (UUID) → 점수
-    "uuid-white":  10,
+    "uuid-white": 10,
     "uuid-yellow": 20,
     "uuid-orange": 35,
-    "uuid-green":  60,
-    "uuid-blue":   95,
-    "uuid-red":   140,
-    "uuid-purple":195,
-    "uuid-black": 260
-  }
+    "uuid-green": 60,
+    "uuid-blue": 95,
+    "uuid-red": 140,
+    "uuid-purple": 195,
+    "uuid-black": 260,
+  },
 }
 ```
 
 > 점수표 수치는 시즌 시작 시 크루장이 자유롭게 조정. 위는 권장 시드.
 
 ### 화면
-| 경로 | 화면명 | 권한 |
-|---|---|---|
-| `/c/{crew}/policies` | PolicyListPage | crew |
-| `/c/{crew}/policies/{id}` | PolicyDetailPage | crew |
-| `/c/{crew}/policies/new` | PolicyCreatePage | leader/admin |
+
+| 경로                      | 화면명           | 권한         |
+| ------------------------- | ---------------- | ------------ |
+| `/c/{crew}/policies`      | PolicyListPage   | crew         |
+| `/c/{crew}/policies/{id}` | PolicyDetailPage | crew         |
+| `/c/{crew}/policies/new`  | PolicyCreatePage | leader/admin |
 
 ### API
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/crews/{crewId}/scoring-policies` | crew | 정책 목록 |
-| POST | `/api/crews/{crewId}/scoring-policies` | leader/admin | 정책 생성 |
-| GET | `/api/scoring-policies/{id}` | crew | 정책 상세 |
-| PATCH | `/api/scoring-policies/{id}` | leader/admin | 정책 수정 (시즌 시작 전만) |
+
+| Method | Path                                   | 권한         | 설명                       |
+| ------ | -------------------------------------- | ------------ | -------------------------- |
+| GET    | `/api/crews/{crewId}/scoring-policies` | crew         | 정책 목록                  |
+| POST   | `/api/crews/{crewId}/scoring-policies` | leader/admin | 정책 생성                  |
+| GET    | `/api/scoring-policies/{id}`           | crew         | 정책 상세                  |
+| PATCH  | `/api/scoring-policies/{id}`           | leader/admin | 정책 수정 (시즌 시작 전만) |
 
 ### 비즈니스 규칙
+
 - 정책은 **크루가 자주 다니는 암장(provider)별로 색-점수 매핑 묶음**을 가진다. 한 정책이 여러 provider를 커버할 수 있음.
 - 시즌 시작 후 정책 수정 불가 (immutable). 바꾸려면 새 정책 + 새 시즌.
 - `first_send_only=true`일 때 같은 user + problem + season 조합으로 한 번만 점수 인정.
@@ -140,42 +153,45 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 
 암장의 세팅 일자 단위. 문제의 라이프사이클을 묶는 컨테이너.
 
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/gyms/{gymId}/setting-cycles` | crew | 회차 목록 (active+archived) |
-| POST | `/api/gyms/{gymId}/setting-cycles` | leader/admin | 새 회차 시작 |
-| PATCH | `/api/setting-cycles/{id}/close` | leader/admin | 회차 종료 |
+| Method | Path                               | 권한         | 설명                        |
+| ------ | ---------------------------------- | ------------ | --------------------------- |
+| GET    | `/api/gyms/{gymId}/setting-cycles` | crew         | 회차 목록 (active+archived) |
+| POST   | `/api/gyms/{gymId}/setting-cycles` | leader/admin | 새 회차 시작                |
+| PATCH  | `/api/setting-cycles/{id}/close`   | leader/admin | 회차 종료                   |
 
 **규칙**
+
 - 한 gym에 동시에 active 회차 1개
 - 회차 종료 시 그 회차의 모든 문제 자동 `archived` → 새 완등 기록 차단 (단, 이전 기록은 보존)
 
 ### 4.2 벽 (Wall)
 
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/gyms/{gymId}/walls` | crew | 벽 목록 |
-| POST | `/api/gyms/{gymId}/walls` | leader/admin | 벽 등록 |
-| PATCH | `/api/walls/{id}` | leader/admin | 이름/정렬 수정 |
-| DELETE | `/api/walls/{id}` | leader/admin | 삭제 (활성 문제 없을 때만) |
+| Method | Path                      | 권한         | 설명                       |
+| ------ | ------------------------- | ------------ | -------------------------- |
+| GET    | `/api/gyms/{gymId}/walls` | crew         | 벽 목록                    |
+| POST   | `/api/gyms/{gymId}/walls` | leader/admin | 벽 등록                    |
+| PATCH  | `/api/walls/{id}`         | leader/admin | 이름/정렬 수정             |
+| DELETE | `/api/walls/{id}`         | leader/admin | 삭제 (활성 문제 없을 때만) |
 
 ### 4.3 문제 (Problem)
 
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/setting-cycles/{id}/problems` | crew | 현재 회차 문제 목록 |
-| POST | `/api/setting-cycles/{id}/problems` | leader/admin | 문제 등록 |
-| PATCH | `/api/problems/{id}` | leader/admin | 색/번호/메모 수정 |
-| DELETE | `/api/problems/{id}` | leader/admin | 삭제 (해당 문제 send 없을 때만) |
-| POST | `/api/problems/{id}/photo` | leader/admin | 사진 업로드 (Supabase Storage) |
+| Method | Path                                | 권한         | 설명                            |
+| ------ | ----------------------------------- | ------------ | ------------------------------- |
+| GET    | `/api/setting-cycles/{id}/problems` | crew         | 현재 회차 문제 목록             |
+| POST   | `/api/setting-cycles/{id}/problems` | leader/admin | 문제 등록                       |
+| PATCH  | `/api/problems/{id}`                | leader/admin | 색/번호/메모 수정               |
+| DELETE | `/api/problems/{id}`                | leader/admin | 삭제 (해당 문제 send 없을 때만) |
+| POST   | `/api/problems/{id}/photo`          | leader/admin | 사진 업로드 (Supabase Storage)  |
 
 ### 화면
-| 경로 | 화면명 | 권한 | 설명 |
-|---|---|---|---|
-| `/c/{crew}/problems` | ProblemBoardPage | crew | 벽 × 색 그리드. 회차 선택. 완등 표시. |
-| `/c/{crew}/problems/new` | ProblemQuickAddPage | leader/admin | 30초 등록 UX (벽→색→번호→사진) |
+
+| 경로                     | 화면명              | 권한         | 설명                                  |
+| ------------------------ | ------------------- | ------------ | ------------------------------------- |
+| `/c/{crew}/problems`     | ProblemBoardPage    | crew         | 벽 × 색 그리드. 회차 선택. 완등 표시. |
+| `/c/{crew}/problems/new` | ProblemQuickAddPage | leader/admin | 30초 등록 UX (벽→색→번호→사진)        |
 
 ### 비즈니스 규칙
+
 - 문제 식별: `(gym_id, wall_id, setting_cycle_id, provider_color_id, number)` UNIQUE
 - 문제는 한 setting_cycle에 종속. 회차 바뀌면 새 문제 객체.
 - 사진 업로드는 선택. 등록 시 즉시 board 반영.
@@ -186,29 +202,34 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 ## 5. 완등 기록 (Sends)
 
 ### 개요
+
 **제품의 심장.** 모든 기록은 즉시 라이브 보드와 타임라인에 노출되며, 점수 스냅샷이 박제된다.
 
 ### API
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/sends?seasonId=&userId=&problemId=` | crew | 기록 목록 (필터) |
-| POST | `/api/sends` | crew | 완등 기록 |
-| PATCH | `/api/sends/{id}` | owner | 본인 기록 수정 (코멘트만) |
-| DELETE | `/api/sends/{id}` | owner | 본인 기록 취소 (soft, 이력 보존) |
-| GET | `/api/sends/{id}/revisions` | crew | 수정 이력 |
+
+| Method | Path                                      | 권한  | 설명                             |
+| ------ | ----------------------------------------- | ----- | -------------------------------- |
+| GET    | `/api/sends?seasonId=&userId=&problemId=` | crew  | 기록 목록 (필터)                 |
+| POST   | `/api/sends`                              | crew  | 완등 기록                        |
+| PATCH  | `/api/sends/{id}`                         | owner | 본인 기록 수정 (코멘트만)        |
+| DELETE | `/api/sends/{id}`                         | owner | 본인 기록 취소 (soft, 이력 보존) |
+| GET    | `/api/sends/{id}/revisions`               | crew  | 수정 이력                        |
 
 ### 화면
-| 경로 | 화면명 | 권한 |
-|---|---|---|
-| `/c/{crew}/timeline` | TimelinePage | crew |
-| `/c/{crew}/me` | MyRecordsPage | crew |
+
+| 경로                 | 화면명        | 권한 |
+| -------------------- | ------------- | ---- |
+| `/c/{crew}/timeline` | TimelinePage  | crew |
+| `/c/{crew}/me`       | MyRecordsPage | crew |
 
 ### 완등 기록 모달 (3탭)
+
 1. 벽 선택 (직전 사용 기억)
 2. 색 + 번호 탭 (해당 벽 active 회차 문제 그리드 표시)
 3. 기록 — 시도 횟수(선택), 코멘트(선택) → 저장
 
 ### 비즈니스 규칙
+
 - `POST /api/sends` 입력: `problem_id` + (선택) `attempt_count` + (선택) `comment`
 - 서버 처리 순서:
   1. RLS 검증 (본인이 같은 크루)
@@ -225,42 +246,48 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 - **시즌 점수 집계**: ranked session sends의 `score_snapshot` SUM만. casual sends 무관.
 
 ### 제한
-| 항목 | 값 |
-|---|---|
-| Rate limit | user당 60초에 30회 (POST /api/sends) |
-| 코멘트 길이 | 0~200자 |
-| 시도 횟수 | 1~99 |
-| 취소 가능 기간 | 무제한 (단 이력 보존) |
+
+| 항목           | 값                                   |
+| -------------- | ------------------------------------ |
+| Rate limit     | user당 60초에 30회 (POST /api/sends) |
+| 코멘트 길이    | 0~200자                              |
+| 시도 횟수      | 1~99                                 |
+| 취소 가능 기간 | 무제한 (단 이력 보존)                |
 
 ---
 
 ## 6. 정기 대회 (Sessions)
 
 ### 개요
+
 시즌 안에서 진행되는 컨테이너. 두 가지 종류:
+
 - **Ranked**: 호스트(크루장)가 명시적 생성. starts_at, ends_at, team_mode 지정. 시즌 점수에 포함.
 - **Casual_open**: 자동 생성. 매일 크루당 1개. 첫 send 발생 시 lazy로 생성. 점수는 기록되지만 시즌 집계 제외.
 
 ### 화면
-| 경로 | 화면명 | 권한 |
-|---|---|---|
-| `/c/{crew}/sessions` | SessionListPage | crew |
-| `/c/{crew}/sessions/{id}` | SessionDetailPage | crew |
-| `/c/{crew}/sessions/{id}/join` | SessionJoinPage | crew |
-| `/c/{crew}/sessions/new` | SessionCreatePage | leader/admin |
+
+| 경로                           | 화면명            | 권한         |
+| ------------------------------ | ----------------- | ------------ |
+| `/c/{crew}/sessions`           | SessionListPage   | crew         |
+| `/c/{crew}/sessions/{id}`      | SessionDetailPage | crew         |
+| `/c/{crew}/sessions/{id}/join` | SessionJoinPage   | crew         |
+| `/c/{crew}/sessions/new`       | SessionCreatePage | leader/admin |
 
 ### API
-| Method | Path | 권한 | 설명 |
-|---|---|---|---|
-| GET | `/api/seasons/{id}/sessions` | crew | 세션 목록 |
-| POST | `/api/seasons/{id}/sessions` | leader/admin | ranked 세션 생성 |
-| GET | `/api/sessions/{id}` | crew | 세션 상세 |
-| PATCH | `/api/sessions/{id}` | leader/admin | 세션 수정 (시작 전만) |
-| POST | `/api/sessions/{id}/join` | crew | 참가 신청 (+ team_id 선택) |
-| POST | `/api/sessions/{id}/start` | leader/admin | 즉시 시작 |
-| POST | `/api/sessions/{id}/close` | leader/admin | 즉시 종료 (freeze) |
+
+| Method | Path                         | 권한         | 설명                       |
+| ------ | ---------------------------- | ------------ | -------------------------- |
+| GET    | `/api/seasons/{id}/sessions` | crew         | 세션 목록                  |
+| POST   | `/api/seasons/{id}/sessions` | leader/admin | ranked 세션 생성           |
+| GET    | `/api/sessions/{id}`         | crew         | 세션 상세                  |
+| PATCH  | `/api/sessions/{id}`         | leader/admin | 세션 수정 (시작 전만)      |
+| POST   | `/api/sessions/{id}/join`    | crew         | 참가 신청 (+ team_id 선택) |
+| POST   | `/api/sessions/{id}/start`   | leader/admin | 즉시 시작                  |
+| POST   | `/api/sessions/{id}/close`   | leader/admin | 즉시 종료 (freeze)         |
 
 ### 데이터
+
 - `sessions.kind`: enum `'ranked'` / `'casual_open'`
   - `'ranked'`: starts_at, ends_at, team_mode 필수 (명시적 생성)
   - `'casual_open'`: starts_at만 설정 (첫 send 발생 시 자동), ends_at=None
@@ -269,6 +296,7 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 - `sessions.gym_id`: 어느 암장에서 진행하는지 (해당 gym의 active setting cycle 문제만 인정)
 
 ### 비즈니스 규칙
+
 - **Ranked 세션**: 호스트가 "지금 랭크전 시작" → 즉석 대회. 게임 홈 CTA로 진입. 시즌 점수에 포함.
 - **Casual_open 세션**: 첫 send 발생 시 자동 생성. "평시 풀이 기록" 용도. 시즌 점수에 미포함.
 - 세션 기간 안의 send만 세션 랭킹 집계.
@@ -302,51 +330,59 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 ## 8. 랭킹
 
 ### 개요
+
 같은 `games.sends` 테이블에서 aggregate 단위만 바꿔 4종 랭킹을 만든다. **시즌 개인 랭킹은 ranked session sends만 합산.**
 
-| 랭킹 | 기준 | 화면 |
-|---|---|---|
-| 시즌 개인 | `SUM(score) GROUP BY user_id WHERE season_id=? AND session.kind='ranked'` | `/c/{crew}/seasons/{id}` |
-| 세션 개인 | `SUM(score) GROUP BY user_id WHERE session_id=?` | `/c/{crew}/sessions/{id}` |
-| 세션 팀 | `SUM(top N per team) WHERE session_id=?` | 같은 페이지 탭 |
-| 크루 대항 | `SUM(top N per crew) WHERE match_id=?` | `/match/{id}` (Phase 3) |
+| 랭킹      | 기준                                                                      | 화면                      |
+| --------- | ------------------------------------------------------------------------- | ------------------------- |
+| 시즌 개인 | `SUM(score) GROUP BY user_id WHERE season_id=? AND session.kind='ranked'` | `/c/{crew}/seasons/{id}`  |
+| 세션 개인 | `SUM(score) GROUP BY user_id WHERE session_id=?`                          | `/c/{crew}/sessions/{id}` |
+| 세션 팀   | `SUM(top N per team) WHERE session_id=?`                                  | 같은 페이지 탭            |
+| 크루 대항 | `SUM(top N per crew) WHERE match_id=?`                                    | `/match/{id}` (Phase 3)   |
 
 ### 동순위 처리
+
 - 점수 동률 시 → 첫 번째 완등 시각 빠른 쪽 우선
 - 그래도 같으면 → 완등 개수 많은 쪽 우선
 
 ### API
-| Method | Path | 권한 |
-|---|---|---|
-| GET | `/api/seasons/{id}/rankings?type=individual` | crew |
-| GET | `/api/sessions/{id}/rankings?type=individual\|team` | crew |
+
+| Method | Path                                                | 권한 |
+| ------ | --------------------------------------------------- | ---- |
+| GET    | `/api/seasons/{id}/rankings?type=individual`        | crew |
+| GET    | `/api/sessions/{id}/rankings?type=individual\|team` | crew |
 
 ---
 
 ## 9. 라이브 보드
 
 ### 개요
+
 **제품의 얼굴.** 암장 TV / 태블릿 풀스크린으로 띄우는 것을 1순위로 디자인.
 
 ### 화면
-| 경로 | 화면명 | 모드 |
-|---|---|---|
-| `/c/{crew}/live` | LiveBoardPage | 시즌 라이브 (active 시즌 자동 선택) |
-| `/c/{crew}/sessions/{id}/live` | LiveSessionBoardPage | 세션 라이브 (카운트다운 포함) |
+
+| 경로                           | 화면명               | 모드                                |
+| ------------------------------ | -------------------- | ----------------------------------- |
+| `/c/{crew}/live`               | LiveBoardPage        | 시즌 라이브 (active 시즌 자동 선택) |
+| `/c/{crew}/sessions/{id}/live` | LiveSessionBoardPage | 세션 라이브 (카운트다운 포함)       |
 
 ### 구성 (위→아래)
+
 1. 헤더: 크루 로고, 시즌/세션 이름, 카운트다운(세션 모드만)
 2. **Top 10 leaderboard**: 순위, 닉네임, 점수, 마지막 완등 색상 도트
 3. "방금 풀이" 토스트 카드: 새 send 발생 시 3초간 표시 (이름 + 색 + 벽+번호)
 4. 가로 모드/16:9 자동 (CSS container query)
 
 ### 동작
+
 - 진입 시 Supabase Realtime 채널 `realtime:games:sends:crew={crew_id}` 구독
 - INSERT 이벤트 수신 → 클라이언트에서 랭킹 재계산 (점수만 합산하므로 가볍게)
 - 5초 이내 반영 KPI
 - 1분에 한 번 fallback fetch (네트워크 끊김 복구)
 
 ### 비주얼 톤
+
 - 어두운 배경(클라이밍 짐의 조명에서도 잘 보이게)
 - 대형 폰트
 - 변화 시 부드러운 슬라이드/페이드 (사람이 따라갈 수 있는 속도)
@@ -357,15 +393,19 @@ zugzag의 `crew_members.role` 그대로 사용 (`leader`, `admin`, `member`).
 ## 10. 알림
 
 ### MVP (Phase 1)
+
 - 본인 완등 → 클라이언트 토스트만 (푸시 없음)
 
 ### Phase 2
+
 zugzag의 web-push 인프라(`web-push` 패키지) 그대로 활용:
+
 - 시즌 1위 추월당함 → 추월당한 사람에게 푸시
 - 세션 시작 5분 전 / 1분 전 → 참가 신청자에게 푸시
 - 본인 기록에 좋아요 (zugzag 피드 연동 후) → 푸시
 
 ### Phase 3
+
 - 자동 배지 획득 알림
 - 크루 대항전 시작/종료
 
@@ -539,25 +579,26 @@ INDEX (crew_id, expires_at)
 
 ## 12. 시스템 제약 & 제한값
 
-| 항목 | 값 | 근거 |
-|---|---|---|
-| Send POST rate limit | 60초당 30회 (user당) | 봇/오탭 방지 |
-| 코멘트 길이 | 0~200자 | DB varchar(200) |
-| 시도 횟수 | 1~99 | DB integer + check |
-| 한 크루 active 시즌 | 1개 | partial unique |
-| 한 gym active setting cycle | 1개 | partial unique |
-| 라이브 보드 반영 지연 | p95 5초 | Supabase Realtime |
-| 사진 업로드 크기 | 5 MB | Supabase Storage 정책 |
-| 시즌 이름 | 1~100자 | varchar(100) |
-| 문제 사진 형식 | JPEG, PNG, WebP | MIME 검증 |
-| API maxDuration | 10초 (기본) | Next.js + Vercel |
-| Display token 만료 | 24시간 (기본) | `/tv/{token}` 라우트 보안 |
+| 항목                        | 값                   | 근거                      |
+| --------------------------- | -------------------- | ------------------------- |
+| Send POST rate limit        | 60초당 30회 (user당) | 봇/오탭 방지              |
+| 코멘트 길이                 | 0~200자              | DB varchar(200)           |
+| 시도 횟수                   | 1~99                 | DB integer + check        |
+| 한 크루 active 시즌         | 1개                  | partial unique            |
+| 한 gym active setting cycle | 1개                  | partial unique            |
+| 라이브 보드 반영 지연       | p95 5초              | Supabase Realtime         |
+| 사진 업로드 크기            | 5 MB                 | Supabase Storage 정책     |
+| 시즌 이름                   | 1~100자              | varchar(100)              |
+| 문제 사진 형식              | JPEG, PNG, WebP      | MIME 검증                 |
+| API maxDuration             | 10초 (기본)          | Next.js + Vercel          |
+| Display token 만료          | 24시간 (기본)        | `/tv/{token}` 라우트 보안 |
 
 ---
 
 ## 부록 A. 사용자 시나리오 (해피 패스)
 
 ### A1. 크루장이 새 시즌을 연다
+
 1. `/c/{crew}/seasons/new` 접속
 2. 시즌 이름 "2026 5월 랭크전", 시작일 오늘, 종료일 6월 30일 입력
 3. 정책 선택 → 기본 정책 자동 생성 (색별 점수표 시드 적용)
@@ -565,6 +606,7 @@ INDEX (crew_id, expires_at)
 5. 점수표 검토 후 `active` 전환 → 멤버 푸시(Phase 2)
 
 ### A2. 멤버가 문제를 완등한다
+
 1. 암장 도착 → PWA 홈에 추가된 zugzag-game 열기
 2. 라이브 보드(또는 문제 보드) 진입
 3. "완등 기록" FAB 탭
@@ -574,6 +616,7 @@ INDEX (crew_id, expires_at)
 7. 라이브 보드에 5초 안에 반영, 다른 사람들 화면에 "방금 풀이" 카드
 
 ### A3. 크루장이 정기 대회를 연다
+
 1. `/c/{crew}/sessions/new`
 2. 이름 "5월 4주차 토요 랭크전", 토요일 14:00~17:00, gym 선택, team_mode `team`
 3. 팀 4개 만들기 (빨강팀/파랑팀/...)

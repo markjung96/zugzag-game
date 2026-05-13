@@ -6,13 +6,7 @@
  * role: 'leader' | 'admin' | 'member' — RLS 헬퍼 games.is_crew_member / is_crew_admin 이 이 컬럼을 평가.
  */
 
-import {
-  pgTable,
-  uuid,
-  text,
-  timestamp,
-  primaryKey,
-} from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, primaryKey } from "drizzle-orm/pg-core";
 import { users } from "./users";
 import { crews } from "./crews";
 

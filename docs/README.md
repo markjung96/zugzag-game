@@ -6,13 +6,13 @@ zugzag(본체)와 같은 Supabase 프로젝트의 DB를 공유하되, 코드와 
 
 ## 핵심 문서
 
-| 문서 | 역할 | 보는 시점 |
-|---|---|---|
-| [PRINCIPLES.md](./PRINCIPLES.md) | 서비스 원칙과 비-목표. 의사결정이 흔들릴 때 돌아오는 기준 | 모든 결정 전 |
-| [FEATURE_SPEC.md](./FEATURE_SPEC.md) | 기능 명세 SSOT. 화면/API/DB/규칙/시나리오 | 기능 구현 전·중 |
-| [ROADMAP.md](./ROADMAP.md) | Phase 0~3 단계별 진행 + 완료 조건 + KPI | 작업 우선순위 결정 |
-| [DB_SHARING.md](./DB_SHARING.md) | zugzag↔game DB 공유 계약. schema 분리, RLS, Realtime publication | DB/마이그레이션 변경 전 |
-| [DESIGN_PROMPT.md](./DESIGN_PROMPT.md) | Claude Design 등 디자인 도구에 입력할 프롬프트 모음 | 디자인 작업 시 |
+| 문서                                   | 역할                                                             | 보는 시점               |
+| -------------------------------------- | ---------------------------------------------------------------- | ----------------------- |
+| [PRINCIPLES.md](./PRINCIPLES.md)       | 서비스 원칙과 비-목표. 의사결정이 흔들릴 때 돌아오는 기준        | 모든 결정 전            |
+| [FEATURE_SPEC.md](./FEATURE_SPEC.md)   | 기능 명세 SSOT. 화면/API/DB/규칙/시나리오                        | 기능 구현 전·중         |
+| [ROADMAP.md](./ROADMAP.md)             | Phase 0~3 단계별 진행 + 완료 조건 + KPI                          | 작업 우선순위 결정      |
+| [DB_SHARING.md](./DB_SHARING.md)       | zugzag↔game DB 공유 계약. schema 분리, RLS, Realtime publication | DB/마이그레이션 변경 전 |
+| [DESIGN_PROMPT.md](./DESIGN_PROMPT.md) | Claude Design 등 디자인 도구에 입력할 프롬프트 모음              | 디자인 작업 시          |
 
 ## 빠른 컨텍스트
 
@@ -32,6 +32,7 @@ PRINCIPLES > FEATURE_SPEC > ROADMAP > DB_SHARING
 ```
 
 기능 추가 요청이 들어오면:
+
 1. `PRINCIPLES`의 5원칙 + Non-Goals 위배하지 않는지
 2. `FEATURE_SPEC`의 기존 모델/API와 충돌 없는지
 3. `ROADMAP`의 현 Phase 정의에 부합하는지

@@ -125,4 +125,4 @@ ALTER TABLE games.display_tokens
 --   AND ccu.table_schema = 'public'
 -- ORDER BY source, constraint_name;
 --
--- 기대: 15개 cross-schema FK (위 ADD CONSTRAINT 합산)
+-- 기대: 16개 cross-schema FK (위 ADD CONSTRAINT 합산)

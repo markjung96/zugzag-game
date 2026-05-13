@@ -43,38 +43,17 @@ export const games = pgSchema("games");
 // Enums
 // ---------------------------------------------------------------------------
 
-export const seasonStatusEnum = games.enum("season_status", [
-  "draft",
-  "active",
-  "closed",
-]);
+export const seasonStatusEnum = games.enum("season_status", ["draft", "active", "closed"]);
 
-export const settingCycleStatusEnum = games.enum("setting_cycle_status", [
-  "active",
-  "closed",
-]);
+export const settingCycleStatusEnum = games.enum("setting_cycle_status", ["active", "closed"]);
 
-export const problemStatusEnum = games.enum("problem_status", [
-  "active",
-  "archived",
-]);
+export const problemStatusEnum = games.enum("problem_status", ["active", "archived"]);
 
-export const sessionKindEnum = games.enum("session_kind", [
-  "ranked",
-  "casual_open",
-]);
+export const sessionKindEnum = games.enum("session_kind", ["ranked", "casual_open"]);
 
-export const sessionStatusEnum = games.enum("session_status", [
-  "scheduled",
-  "live",
-  "closed",
-]);
+export const sessionStatusEnum = games.enum("session_status", ["scheduled", "live", "closed"]);
 
-export const teamModeEnum = games.enum("team_mode", [
-  "individual",
-  "team",
-  "crew_vs_crew",
-]);
+export const teamModeEnum = games.enum("team_mode", ["individual", "team", "crew_vs_crew"]);
 
 export const sendRevisionActionEnum = games.enum("send_revision_action", [
   "create",
@@ -112,9 +91,7 @@ export const seasons = games.table(
     endsAt: timestamp("ends_at", { withTimezone: true }),
     status: seasonStatusEnum("status").notNull().default("draft"),
     createdBy: uuid("created_by"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("seasons_crew_status_idx").on(t.crewId, t.status),
@@ -129,17 +106,19 @@ export const seasons = games.table(
 //    cross-schema FK: crew_id → public.crews(id), created_by → public.users(id)
 // ---------------------------------------------------------------------------
 
-export const scoringPolicies = games.table("scoring_policies", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  crewId: uuid("crew_id").notNull(),
-  name: varchar("name", { length: 100 }).notNull(),
-  colorScores: jsonb("color_scores").$type<ColorScores>().notNull(),
-  isLocked: boolean("is_locked").notNull().default(false),
-  createdBy: uuid("created_by"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const scoringPolicies = games.table(
+  "scoring_policies",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    crewId: uuid("crew_id").notNull(),
+    name: varchar("name", { length: 100 }).notNull(),
+    colorScores: jsonb("color_scores").$type<ColorScores>().notNull(),
+    isLocked: boolean("is_locked").notNull().default(false),
+    createdBy: uuid("created_by"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex("scoring_policies_crew_name_unique").on(t.crewId, t.name)],
+);
 
 // ---------------------------------------------------------------------------
 // 3. games.setting_cycles
@@ -200,9 +179,7 @@ export const problems = games.table(
     photoUrl: text("photo_url"),
     status: problemStatusEnum("status").notNull().default("active"),
     createdBy: uuid("created_by"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     uniqueIndex("problems_cycle_wall_color_number_unique").on(
@@ -236,9 +213,7 @@ export const sessions = games.table(
     status: sessionStatusEnum("status").notNull().default("scheduled"),
     teamMode: teamModeEnum("team_mode").notNull().default("individual"),
     createdBy: uuid("created_by"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("sessions_season_status_idx").on(t.seasonId, t.status),
@@ -278,9 +253,7 @@ export const sessionParticipants = games.table(
     teamId: uuid("team_id").references(() => sessionTeams.id, {
       onDelete: "set null",
     }),
-    joinedAt: timestamp("joined_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [primaryKey({ columns: [t.sessionId, t.userId] })],
 );
@@ -309,9 +282,7 @@ export const sends = games.table(
     scoreSnapshot: integer("score_snapshot").notNull(),
     attemptCount: integer("attempt_count"),
     comment: varchar("comment", { length: 200 }),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   },
   (t) => [
@@ -321,9 +292,7 @@ export const sends = games.table(
     // C-A fix: ranked에만 first_send_only 적용.
     uniqueIndex("sends_ranked_first_send_only")
       .on(t.userId, t.problemId, t.seasonId)
-      .where(
-        sql`${t.cancelledAt} IS NULL AND ${t.sessionKind} = 'ranked'`,
-      ),
+      .where(sql`${t.cancelledAt} IS NULL AND ${t.sessionKind} = 'ranked'`),
   ],
 );
 
@@ -365,9 +334,7 @@ export const displayTokens = games.table(
     expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
     revokedAt: timestamp("revoked_at", { withTimezone: true }),
     createdBy: uuid("created_by"),
-    createdAt: timestamp("created_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("display_tokens_token_idx").on(t.token),

@@ -6,12 +6,16 @@
 
 ---
 
-## 1.1 도메인 모델 (Drizzle migration)
+## 1.1 도메인 모델 (Drizzle migration) ✅ 완료
 
-- [ ] `games.*` schema 마이그레이션 (seasons, scoring_policies, sessions, session_teams, session_participants, setting_cycles, walls, problems, sends, send_revisions, display_tokens)
-- [ ] 기본 점수 정책 시드 (흰 10 / 노 20 / 주 35 / 초 60 / 파 95 / 빨 140 / 보 195 / 검 260)
-- [ ] partial UNIQUE 확인: ranked first_send_only, casual_open 1/day
-- [ ] cross-schema 조인 검증 (`games.sends ↔ public.users / crews / provider_colors`)
+- [x] `games.*` schema 마이그레이션 (Phase 0.3 완료)
+- [x] **zod 스키마 공유 모듈** (`src/lib/validation/*` 9파일 + barrel + 27 unit tests)
+- [x] **기본 점수 정책 시드** (`src/lib/db/seed.ts` — `--crew-id` + `--provider-id` argv, 한/영 label aliases, idempotent. 사용자 수동 실행 필요)
+- [x] **`scoring_policies (crew_id, name)` UNIQUE migration 0002** (race-safe idempotency. 사용자 SQL Editor 적용 필요)
+- [x] **partial UNIQUE 통합 테스트** (`tests/integration/partial-unique.test.ts` — ranked first_send_only 23505 + ON CONFLICT DO NOTHING, casual_open 1/day)
+- [x] **cross-schema 조인 통합 테스트** (`tests/integration/cross-schema-join.test.ts` — sends↔users, sessions↔crews)
+- [x] **POSTGRES_URL_ADMIN 가드** (.env.example + ESLint no-restricted-syntax dot/bracket/destructure 3종)
+- [x] **04-cross-schema-fks.sql 주석 정정** (15 → 16)
 
 ## 1.2 운영자 화면 (leader/admin)
 
