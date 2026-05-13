@@ -1,6 +1,8 @@
+@AGENTS.md
+
 # CLAUDE.md — zugzag-game
 
-> 새 agent가 들어왔을 때 **30초 컨텍스트 흡수**가 목표. 이 파일은 인덱스 + 핵심 결정 highlight + 코딩 규칙만. 세부는 `docs/`에 위임.
+> 새 agent가 들어왔을 때 **30초 컨텍스트 흡수**가 목표. 이 파일은 인덱스 + 핵심 결정 highlight + 코딩 규칙만. 세부는 `docs/`에 위임. Next.js 16 specific 가이드는 `AGENTS.md` (자동 import).
 
 ---
 
