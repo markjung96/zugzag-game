@@ -63,33 +63,37 @@ function parseArgs(): { crewId: string; providerId: string } {
 // helpers
 // ---------------------------------------------------------------------------
 
-function buildColorScoresMap(
-  providerColors: postgres.RowList<postgres.Row[]>,
-): Record<string, number> {
+function buildColorScoresMap(providerColors: postgres.RowList<postgres.Row[]>): {
+  map: Record<string, number>;
+  matched: string[];
+  skipped: string[];
+} {
   const colorScoresMap: Record<string, number> = {};
   const holdColors = Object.keys(LABEL_ALIASES) as HoldColor[];
-  const missingColors: string[] = [];
+  const matched: string[] = [];
+  const skipped: string[] = [];
 
   for (const holdColor of holdColors) {
     const aliases = LABEL_ALIASES[holdColor];
-    const matched = providerColors.find((pc) =>
+    const row = providerColors.find((pc) =>
       aliases.some((alias) => String(pc.label).toLowerCase() === alias.toLowerCase()),
     );
 
-    if (!matched) {
-      missingColors.push(holdColor);
+    if (row) {
+      colorScoresMap[String(row.id)] = COLOR_SCORES[holdColor];
+      matched.push(`${holdColor}→${row.label}(${COLOR_SCORES[holdColor]})`);
     } else {
-      colorScoresMap[String(matched.id)] = COLOR_SCORES[holdColor];
+      skipped.push(holdColor);
     }
   }
 
-  if (missingColors.length > 0) {
+  if (matched.length === 0) {
     const labels = providerColors.map((pc) => String(pc.label)).join(", ");
-    console.error(`missing color: ${missingColors.join(", ")}. provider_colors labels=[${labels}]`);
+    console.error(`no holdcolor matched any provider_colors label. provider labels=[${labels}]`);
     process.exit(1);
   }
 
-  return colorScoresMap;
+  return { map: colorScoresMap, matched, skipped };
 }
 
 // ---------------------------------------------------------------------------
@@ -129,7 +133,14 @@ async function main() {
       ORDER BY sort_order
     `;
 
-    const colorScoresMap = buildColorScoresMap(providerColors);
+    const { map: colorScoresMap, matched, skipped } = buildColorScoresMap(providerColors);
+
+    console.error(`[seed] matched ${matched.length}/8 colors: ${matched.join(", ")}`);
+    if (skipped.length > 0) {
+      console.error(
+        `[seed] skipped (provider 미보유): ${skipped.join(", ")} — 해당 색은 정책에서 제외됨`,
+      );
+    }
 
     const colorScoresValue: ColorScores = {
       first_send_only: true,
@@ -151,7 +162,9 @@ async function main() {
       .returning({ id: scoringPolicies.id });
 
     if (result.length > 0) {
-      console.log(JSON.stringify({ created: true, policyId: result[0].id }));
+      console.log(
+        JSON.stringify({ created: true, policyId: result[0].id, matched: matched.length }),
+      );
     } else {
       const [existing] = await client`
         SELECT id FROM games.scoring_policies
