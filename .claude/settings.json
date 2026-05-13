@@ -1,0 +1,48 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
+      "Bash(git status)",
+      "Bash(git status:*)",
+      "Bash(git diff)",
+      "Bash(git diff:*)",
+      "Bash(git log)",
+      "Bash(git log:*)",
+      "Bash(git branch)",
+      "Bash(git branch:*)",
+      "Bash(git show:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git init)",
+      "Bash(git init:*)",
+      "Bash(git check-ignore:*)",
+      "Bash(supabase:*)",
+      "Bash(drizzle-kit:*)",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(rg:*)",
+      "Bash(find:*)",
+      "Bash(tree:*)",
+      "Bash(wc:*)",
+      "Bash(jq:*)",
+      "Read(/Users/jeonghyeongseob/Desktop/MARK/zugzag-game/**)",
+      "Read(//Users/jeonghyeongseob/.gstack/projects/zugzag-game/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(rm -rf /)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git commit -n:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git clean -fd:*)",
+      "Bash(git branch -D:*)"
+    ]
+  }
+}
