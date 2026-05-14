@@ -6,11 +6,15 @@ const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
- * Anon client — RLS 적용. Realtime 구독, 일반 쿼리에 사용.
- * 서버 컴포넌트/Route Handler에서 사용.
+ * Broker-aware anon client — RLS 적용.
+ * accessToken이 있으면 Authorization 헤더에 주입하여 auth.uid() = user_id 매핑.
+ * accessToken이 null이면 anon 쿼리 (Phase 1.6 TV 모드 forward).
  */
-export function createServerClient() {
-  return createClient(url, anonKey);
+export function createServerClient(accessToken: string | null) {
+  return createClient(url, anonKey, {
+    ...(accessToken ? { global: { headers: { Authorization: `Bearer ${accessToken}` } } } : {}),
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 }
 
 /**

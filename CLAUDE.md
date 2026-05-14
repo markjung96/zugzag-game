@@ -125,7 +125,7 @@
 
 ## 8. 다음 단계
 
-현재 Phase: **Phase 1.1 완료 → Phase 1.2~1.6 진입** — 상세 task는 `PLAN.md` §15-16 참조.
+현재 Phase: **Phase 1.4 코드 완료 → KPI 측정 + Phase 1.3/1.2 진입 준비** — 상세 task는 `PLAN.md` §15-16 참조.
 
 Phase 0.4 완료 산출물:
 
@@ -148,8 +148,23 @@ Phase 1.1 완료 산출물:
 
 > **컨셉 변경**: 초기 plan의 "기본 점수 정책 seed"는 폐기. Scoring policy는 시스템 invariant가 아니라 운영자 자율 룰북 — P1.2-PolicyCRUD admin UI에서 생성. 기본값은 `src/lib/policies/default-template.ts` 상수 import로 처리.
 
+Phase 1.4 완료 산출물 (코드):
+
+- **NextAuth → Supabase JWT broker** (`src/lib/auth/config.ts` + `src/types/next-auth.d.ts`) — `jose` HS256 서명, 1h 만료, 5분 전 자동 갱신. `SUPABASE_JWT_SECRET` 환경변수 추가.
+- **Supabase client 토큰 주입** — server: `createServerClient(accessToken)` Authorization 헤더 주입 / browser: `createBrowserClient(getToken)` accessToken callback + Realtime 자동 갱신.
+- **Realtime hook** (`src/lib/realtime/useRealtimeSends.ts` + `schemas.ts`) — `games.sends` INSERT/UPDATE 구독 + zod payload 검증 + 채널 상태 노출.
+- **LiveBoardPage / LiveSessionBoardPage** (`src/app/(auth)/c/[crew]/live/`, `src/app/(auth)/c/[crew]/sessions/[id]/live/`) — initial SSR rankings + Realtime patch + connected 시 race-window refetch + 60s fallback polling + "방금 풀이" Toast 3s.
+- **Ranking API + query helper** (`src/app/api/{seasons,sessions}/[id]/rankings/route.ts`, `src/lib/db/queries/rankings.ts`) — RPC `get_season_rankings` 우선, 실패 시 raw 쿼리 fallback. ranked sends만 시즌 합산.
+- **Primitives**: BottomNav / KindBadge / Avatar / Toast.
+- **e2e KPI**: `tests/e2e/live-kpi.spec.ts` (100 INSERT 시퀀셜, NTP offset 보정 후 p95 < 4500ms 단언) + `live-board.spec.ts` + `tests/helpers/admin-pg.ts`. `playwright.config.ts`에 CI 빌드 모드 + globalTeardown 추가.
+- `tests/unit/realtime-schemas.test.ts` 추가.
+- typecheck + lint + unit test 모두 green.
+
 ⏳ 사용자 액션 필요:
 
-1. **integration test 실행** (선택): `pnpm test:integration` — POSTGRES_URL_ADMIN 이미 .env.local에 추가됨
+1. `.env.local`에 `SUPABASE_JWT_SECRET` 추가 (Supabase Dashboard → API Settings → JWT Secret 복사).
+2. e2e fixture row 생성: Supabase SQL Editor 또는 `tests/helpers/admin-pg.ts` 활용. ID들을 `.env.local`의 `SEED_TEST_*`에 복사.
+3. `pnpm test:kpi` 실행 → p95 5초 반영 KPI 측정 결과 확인. 통과 못하면 R# 회귀 핸들링.
+4. (선택) `pnpm test:integration` — POSTGRES_URL_ADMIN 이미 .env.local에 추가됨.
 
-다음: Phase 1.4 (라이브 보드) 우선 — P1 KPI "5초 반영" 조기 검증. → Phase 1.3 (멤버 화면) → Phase 1.2 (운영자 + PolicyCRUD가 기본 정책 생성 UI 담당) → Phase 1.5/1.6.
+다음: Phase 1.3 (멤버 화면, SendModal/ProblemBoard) → Phase 1.2 (운영자 + PolicyCRUD가 기본 정책 생성 UI 담당) → Phase 1.5/1.6.

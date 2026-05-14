@@ -16,8 +16,9 @@ export default defineConfig({
     { name: "mobile", use: { ...devices["iPhone 14"] } },
   ],
   webServer: {
-    command: "pnpm dev",
+    command: process.env.CI ? "pnpm build && pnpm start" : "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
   },
+  globalTeardown: "./tests/e2e/global-teardown.ts",
 });

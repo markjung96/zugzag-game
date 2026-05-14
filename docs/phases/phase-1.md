@@ -52,14 +52,19 @@
 - [ ] 랭킹 GET (시즌/세션, ranked sends만 시즌 합산)
 - [ ] TV 토큰 발급/revoke (`POST /api/seasons/{id}/display-tokens`, `DELETE /api/display-tokens/{id}`)
 
-## 1.5 라이브 보드 (P1 핵심)
+## 1.5 라이브 보드 (P1 핵심) ✅ 코드 완료 / ⏳ KPI 측정 대기
 
-- [ ] Supabase Realtime 채널 `realtime:games:sends:crew={crew_id}` 구독
-- [ ] INSERT 이벤트 수신 → 클라이언트 랭킹 재계산 (점수 합산만 가볍게)
-- [ ] 5초 이내 보드 반영 KPI (p95) — 클라이언트 측정 로깅
-- [ ] 1분 1회 fallback fetch (네트워크 끊김 복구)
-- [ ] "방금 풀이" 토스트 카드 (3초 페이드)
-- [ ] 가로 16:9 자동 (CSS container query)
+- [x] NextAuth → Supabase JWT broker (HS256, 1h, 5분 전 자동 갱신) + 양쪽 Supabase client 토큰 주입
+- [x] Supabase Realtime hook `useRealtimeSends` — `games.sends` INSERT/UPDATE를 `season_id` 필터로 구독, zod payload 검증
+- [x] INSERT 이벤트 수신 → 클라이언트 랭킹 재계산 (점수 합산만 가볍게)
+- [x] connected 직후 race-window refetch (R1-M2)
+- [x] 60s 1회 fallback polling (네트워크 끊김 복구)
+- [x] "방금 풀이" 토스트 카드 (3초 페이드)
+- [x] LiveBoardPage `/c/{crew}/live` + LiveSessionBoardPage `/c/{crew}/sessions/{id}/live` + primitives (BottomNav/KindBadge/Avatar/Toast)
+- [x] 시즌/세션 ranking GET API + query helper (RPC + raw fallback)
+- [x] e2e KPI 시나리오 (100 INSERT, NTP offset 보정, `expect(p95).toBeLessThan(4500)`)
+- [ ] 5초 이내 보드 반영 KPI (p95) — `pnpm test:kpi` 실제 실행 측정 (사용자 액션)
+- [ ] 가로 16:9 자동 (CSS container query) — Phase 1.6에서
 
 ## 1.6 운영 안전망
 

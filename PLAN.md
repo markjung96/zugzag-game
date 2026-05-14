@@ -542,17 +542,22 @@ SELECT tc.constraint_name FROM information_schema.table_constraints tc
 | P1.3-SessionDetail | SessionDetailPage (P11)            | 화면                   | P1.2-QuickRanked   | 세션 상세 + 랭킹                  |
 | P1.3-SessionJoin   | SessionJoinPage                    | 화면 + POST join       | P1.3-SessionDetail | 참가 + 팀 선택                    |
 
-### §1.4 라이브 보드
+### §1.4 라이브 보드 ✅ 코드 완료 / ⏳ KPI 측정 대기
 
-| Task ID          | 무엇                              | 파일                | 의존           | 검증                                |
-| ---------------- | --------------------------------- | ------------------- | -------------- | ----------------------------------- |
-| P1.4-Realtime    | Supabase Realtime 클라이언트 hook | `src/lib/realtime/` | P0.4-Supabase  | sends INSERT 이벤트 수신            |
-| P1.4-LiveBoard   | LiveBoardPage (P1)                | 화면                | P1.4-Realtime  | p95 5초 반영                        |
-| P1.4-LiveSession | LiveSessionBoardPage (P12)        | 화면                | P1.4-Realtime  | 카운트다운 + 실시간                 |
-| P1.4-Toast       | "방금 풀이" 토스트 카드           | Toast primitive     | P1.4-Realtime  | 3초 페이드                          |
-| P1.4-Fallback    | 1분 1회 fallback fetch            | 화면 내             | P1.4-LiveBoard | 네트워크 복구 테스트                |
-| P1.4-E2          | 점수 프리뷰 (Step 3)              | SendRecordModal     | P1.3-SendModal | ranked에서만 표시, casual 별도 카피 |
-| P1.4-E3          | 누적 카운터                       | LiveBoardPage       | P1.4-Realtime  | ranked sends만 count                |
+> NextAuth JWT broker(T0)와 ranking API/query helper는 plan에는 명시되지 않았지만 P1.4 동작에 필수여서 함께 구현했다. 모두 typecheck + lint + unit test green.
+
+| Task ID          | 무엇                                                                  | 파일                                                                                      | 의존                        | 검증                                          | 상태                     |
+| ---------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------- | ------------------------ |
+| P1.4-JWTBroker   | NextAuth → Supabase JWT broker (HS256, 1h, 5분 전 갱신) + client 주입 | `src/lib/auth/config.ts`, `src/lib/supabase/{client,server}.ts`, `next-auth.d.ts`         | P0.4-NextAuth               | typecheck + 모든 라우트에서 `auth.uid()` 매핑 | ✅ 완료                  |
+| P1.4-Realtime    | Supabase Realtime 클라이언트 hook + zod payload 검증                  | `src/lib/realtime/{useRealtimeSends,schemas}.ts`                                          | P1.4-JWTBroker              | unit test (realtime-schemas) + INSERT 수신    | ✅ 완료                  |
+| P1.4-RankAPI     | 시즌/세션 ranking GET + query helper (RPC + raw fallback)             | `src/app/api/{seasons,sessions}/[id]/rankings/route.ts`, `src/lib/db/queries/rankings.ts` | P1.4-JWTBroker              | typecheck + ranked sends만 합산               | ✅ 완료                  |
+| P1.4-LiveBoard   | LiveBoardPage (P1) — SSR 초기 + Realtime patch + race-window refetch  | `src/app/(auth)/c/[crew]/live/`                                                           | P1.4-Realtime, P1.4-RankAPI | e2e live-board + KPI                          | ✅ 코드 / ⏳ KPI 측정    |
+| P1.4-LiveSession | LiveSessionBoardPage (P12)                                            | `src/app/(auth)/c/[crew]/sessions/[id]/live/`                                             | P1.4-Realtime, P1.4-RankAPI | 카운트다운 + 실시간                           | ✅ 완료                  |
+| P1.4-Toast       | "방금 풀이" 토스트 카드 + primitives (BottomNav/KindBadge/Avatar)     | `src/components/primitives/`                                                              | P1.4-Realtime               | LiveBoard 안에서 3초 페이드                   | ✅ 완료                  |
+| P1.4-Fallback    | 60s 1회 fallback polling                                              | LiveBoardClient 내                                                                        | P1.4-LiveBoard              | 네트워크 복구 테스트                          | ✅ 완료                  |
+| P1.4-E2E         | live-kpi.spec.ts (100 INSERT, NTP-offset 보정, p95 < 4500ms)          | `tests/e2e/live-kpi.spec.ts`, `live-board.spec.ts`, `tests/helpers/admin-pg.ts`           | P1.4-LiveBoard              | `pnpm test:kpi` p95 통과                      | ✅ 코드 / ⏳ 사용자 실행 |
+| P1.4-E2          | 점수 프리뷰 (Step 3)                                                  | SendRecordModal                                                                           | P1.3-SendModal              | ranked에서만 표시, casual 별도 카피           | ⏳ Phase 1.3에서         |
+| P1.4-E3          | 누적 카운터                                                           | LiveBoardPage                                                                             | P1.4-Realtime               | ranked sends만 count                          | ⏳ Phase 1.3 후속        |
 
 ### §1.5 운영 안전망
 

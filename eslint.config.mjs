@@ -7,18 +7,20 @@ const POSTGRES_URL_ADMIN_GUARD = [
   {
     selector:
       "MemberExpression[object.type='MemberExpression'][object.object.name='process'][object.property.name='env'][computed=false][property.name='POSTGRES_URL_ADMIN']",
-    message: "POSTGRES_URL_ADMIN은 seed.ts와 tests/integration/setup.ts 외 사용 금지 (dot access)",
+    message:
+      "POSTGRES_URL_ADMIN은 tests/integration/setup.ts와 tests/helpers/admin-pg.ts 외 사용 금지 (dot access)",
   },
   {
     selector:
       "MemberExpression[object.type='MemberExpression'][object.object.name='process'][object.property.name='env'][computed=true][property.value='POSTGRES_URL_ADMIN']",
     message:
-      "POSTGRES_URL_ADMIN은 seed.ts와 tests/integration/setup.ts 외 사용 금지 (bracket access)",
+      "POSTGRES_URL_ADMIN은 tests/integration/setup.ts와 tests/helpers/admin-pg.ts 외 사용 금지 (bracket access)",
   },
   {
     selector:
       "VariableDeclarator[init.type='MemberExpression'][init.object.name='process'][init.property.name='env'] ObjectPattern Property[key.name='POSTGRES_URL_ADMIN']",
-    message: "POSTGRES_URL_ADMIN은 seed.ts와 tests/integration/setup.ts 외 사용 금지 (destructure)",
+    message:
+      "POSTGRES_URL_ADMIN은 tests/integration/setup.ts와 tests/helpers/admin-pg.ts 외 사용 금지 (destructure)",
   },
 ];
 
@@ -39,7 +41,7 @@ const eslintConfig = defineConfig([
   },
   {
     files: ["tests/**/*.ts"],
-    ignores: ["tests/integration/setup.ts"],
+    ignores: ["tests/integration/setup.ts", "tests/helpers/admin-pg.ts"],
     rules: {
       "no-restricted-syntax": ["error", ...POSTGRES_URL_ADMIN_GUARD],
     },
