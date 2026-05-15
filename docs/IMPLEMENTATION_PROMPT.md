@@ -225,8 +225,7 @@ zugzag-game/
 │   │   │   ├── schema/
 │   │   │   │   ├── games/           # games.* 자체 스키마
 │   │   │   │   └── shared/          # public.* 미러 (read-only 헤더)
-│   │   │   ├── client.ts
-│   │   │   └── seed.ts
+│   │   │   └── client.ts
 │   │   ├── auth/                    # NextAuth share helper
 │   │   ├── realtime/                # Supabase Realtime client
 │   │   ├── sse/                     # E5 SSE proxy (Vercel Edge)
