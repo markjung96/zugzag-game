@@ -41,12 +41,11 @@ export function LiveBoardClient({ seasonId, accessToken, initialRankings }: Live
         clientReceivedAt,
       });
     }
-    if (process.env.NODE_ENV !== "production") {
-      console.log("[live-kpi]", {
-        sendId: row.id,
-        delta: `${Date.now() - Date.parse(row.created_at)}ms`,
-      });
-    }
+    // dogfooding 텔레메트리 — Phase 2 진입 조건(p95 5초) 자연 누적 측정용. ±1-2초 클럭 드리프트 가능.
+    console.info("[kpi-realtime-delta]", {
+      sendId: row.id,
+      deltaMs: Date.now() - Date.parse(row.created_at),
+    });
 
     // Update rankings
     setRankings((prev) => {

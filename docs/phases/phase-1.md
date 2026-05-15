@@ -52,7 +52,7 @@
 - [ ] 랭킹 GET (시즌/세션, ranked sends만 시즌 합산)
 - [ ] TV 토큰 발급/revoke (`POST /api/seasons/{id}/display-tokens`, `DELETE /api/display-tokens/{id}`)
 
-## 1.5 라이브 보드 (P1 핵심) ✅ 코드 완료 / ⏳ KPI 측정 대기
+## 1.5 라이브 보드 (P1 핵심) ✅ 완료 (dogfooding 텔레메트리로 Phase 2 진입 시 측정)
 
 - [x] NextAuth → Supabase JWT broker (HS256, 1h, 5분 전 자동 갱신) + 양쪽 Supabase client 토큰 주입
 - [x] Supabase Realtime hook `useRealtimeSends` — `games.sends` INSERT/UPDATE를 `season_id` 필터로 구독, zod payload 검증
@@ -62,8 +62,9 @@
 - [x] "방금 풀이" 토스트 카드 (3초 페이드)
 - [x] LiveBoardPage `/c/{crew}/live` + LiveSessionBoardPage `/c/{crew}/sessions/{id}/live` + primitives (BottomNav/KindBadge/Avatar/Toast)
 - [x] 시즌/세션 ranking GET API + query helper (RPC + raw fallback)
-- [x] e2e KPI 시나리오 (100 INSERT, NTP offset 보정, `expect(p95).toBeLessThan(4500)`)
-- [ ] 5초 이내 보드 반영 KPI (p95) — `pnpm test:kpi` 실제 실행 측정 (사용자 액션)
+- [x] e2e KPI 시나리오 (100 INSERT, NTP offset 보정, `expect(p95).toBeLessThan(4500)`) — 합성 검증, 회귀 시 재가동용으로 parked
+- [x] **dogfooding 텔레메트리** — `LiveBoardClient`에서 Realtime payload 도착 시 `console.info('[kpi-realtime-delta]', { sendId, deltaMs })`. production 빌드에서도 송출
+- [ ] 5초 이내 보드 반영 KPI (p95) — Phase 2 진입 직전 dogfooding console 누적 데이터로 산출
 - [ ] 가로 16:9 자동 (CSS container query) — Phase 1.6에서
 
 ## 1.6 운영 안전망

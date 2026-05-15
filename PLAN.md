@@ -542,22 +542,24 @@ SELECT tc.constraint_name FROM information_schema.table_constraints tc
 | P1.3-SessionDetail | SessionDetailPage (P11)            | 화면                   | P1.2-QuickRanked   | 세션 상세 + 랭킹                  |
 | P1.3-SessionJoin   | SessionJoinPage                    | 화면 + POST join       | P1.3-SessionDetail | 참가 + 팀 선택                    |
 
-### §1.4 라이브 보드 ✅ 코드 완료 / ⏳ KPI 측정 대기
+### §1.4 라이브 보드 ✅ 완료 (dogfooding 텔레메트리로 Phase 2 진입 시 측정)
 
 > NextAuth JWT broker(T0)와 ranking API/query helper는 plan에는 명시되지 않았지만 P1.4 동작에 필수여서 함께 구현했다. 모두 typecheck + lint + unit test green.
+>
+> **KPI 측정 방식 변경 (2026-05-15)**: 합성 e2e (100 INSERT 시퀀셜)로 측정하는 대신, `LiveBoardClient`에서 `console.info('[kpi-realtime-delta]', { sendId, deltaMs })`로 production 빌드에서도 매 Realtime payload 도착마다 로그 송출. dogfooding 중 자연 누적된 데이터로 Phase 2 진입 직전에 p95 산출. 합성 e2e (`tests/e2e/live-kpi.spec.ts`)와 fixture 헬퍼는 코드로 보관 — 회귀 검증 필요 시 재가동 가능.
 
-| Task ID          | 무엇                                                                  | 파일                                                                                      | 의존                        | 검증                                          | 상태                     |
-| ---------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------- | ------------------------ |
-| P1.4-JWTBroker   | NextAuth → Supabase JWT broker (HS256, 1h, 5분 전 갱신) + client 주입 | `src/lib/auth/config.ts`, `src/lib/supabase/{client,server}.ts`, `next-auth.d.ts`         | P0.4-NextAuth               | typecheck + 모든 라우트에서 `auth.uid()` 매핑 | ✅ 완료                  |
-| P1.4-Realtime    | Supabase Realtime 클라이언트 hook + zod payload 검증                  | `src/lib/realtime/{useRealtimeSends,schemas}.ts`                                          | P1.4-JWTBroker              | unit test (realtime-schemas) + INSERT 수신    | ✅ 완료                  |
-| P1.4-RankAPI     | 시즌/세션 ranking GET + query helper (RPC + raw fallback)             | `src/app/api/{seasons,sessions}/[id]/rankings/route.ts`, `src/lib/db/queries/rankings.ts` | P1.4-JWTBroker              | typecheck + ranked sends만 합산               | ✅ 완료                  |
-| P1.4-LiveBoard   | LiveBoardPage (P1) — SSR 초기 + Realtime patch + race-window refetch  | `src/app/(auth)/c/[crew]/live/`                                                           | P1.4-Realtime, P1.4-RankAPI | e2e live-board + KPI                          | ✅ 코드 / ⏳ KPI 측정    |
-| P1.4-LiveSession | LiveSessionBoardPage (P12)                                            | `src/app/(auth)/c/[crew]/sessions/[id]/live/`                                             | P1.4-Realtime, P1.4-RankAPI | 카운트다운 + 실시간                           | ✅ 완료                  |
-| P1.4-Toast       | "방금 풀이" 토스트 카드 + primitives (BottomNav/KindBadge/Avatar)     | `src/components/primitives/`                                                              | P1.4-Realtime               | LiveBoard 안에서 3초 페이드                   | ✅ 완료                  |
-| P1.4-Fallback    | 60s 1회 fallback polling                                              | LiveBoardClient 내                                                                        | P1.4-LiveBoard              | 네트워크 복구 테스트                          | ✅ 완료                  |
-| P1.4-E2E         | live-kpi.spec.ts (100 INSERT, NTP-offset 보정, p95 < 4500ms)          | `tests/e2e/live-kpi.spec.ts`, `live-board.spec.ts`, `tests/helpers/admin-pg.ts`           | P1.4-LiveBoard              | `pnpm test:kpi` p95 통과                      | ✅ 코드 / ⏳ 사용자 실행 |
-| P1.4-E2          | 점수 프리뷰 (Step 3)                                                  | SendRecordModal                                                                           | P1.3-SendModal              | ranked에서만 표시, casual 별도 카피           | ⏳ Phase 1.3에서         |
-| P1.4-E3          | 누적 카운터                                                           | LiveBoardPage                                                                             | P1.4-Realtime               | ranked sends만 count                          | ⏳ Phase 1.3 후속        |
+| Task ID          | 무엇                                                                                         | 파일                                                                                      | 의존                        | 검증                                          | 상태              |
+| ---------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | --------------------------- | --------------------------------------------- | ----------------- |
+| P1.4-JWTBroker   | NextAuth → Supabase JWT broker (HS256, 1h, 5분 전 갱신) + client 주입                        | `src/lib/auth/config.ts`, `src/lib/supabase/{client,server}.ts`, `next-auth.d.ts`         | P0.4-NextAuth               | typecheck + 모든 라우트에서 `auth.uid()` 매핑 | ✅ 완료           |
+| P1.4-Realtime    | Supabase Realtime 클라이언트 hook + zod payload 검증                                         | `src/lib/realtime/{useRealtimeSends,schemas}.ts`                                          | P1.4-JWTBroker              | unit test (realtime-schemas) + INSERT 수신    | ✅ 완료           |
+| P1.4-RankAPI     | 시즌/세션 ranking GET + query helper (RPC + raw fallback)                                    | `src/app/api/{seasons,sessions}/[id]/rankings/route.ts`, `src/lib/db/queries/rankings.ts` | P1.4-JWTBroker              | typecheck + ranked sends만 합산               | ✅ 완료           |
+| P1.4-LiveBoard   | LiveBoardPage (P1) — SSR 초기 + Realtime patch + race-window refetch + dogfooding 텔레메트리 | `src/app/(auth)/c/[crew]/live/`                                                           | P1.4-Realtime, P1.4-RankAPI | e2e live-board + console 텔레메트리           | ✅ 완료           |
+| P1.4-LiveSession | LiveSessionBoardPage (P12)                                                                   | `src/app/(auth)/c/[crew]/sessions/[id]/live/`                                             | P1.4-Realtime, P1.4-RankAPI | 카운트다운 + 실시간                           | ✅ 완료           |
+| P1.4-Toast       | "방금 풀이" 토스트 카드 + primitives (BottomNav/KindBadge/Avatar)                            | `src/components/primitives/`                                                              | P1.4-Realtime               | LiveBoard 안에서 3초 페이드                   | ✅ 완료           |
+| P1.4-Fallback    | 60s 1회 fallback polling                                                                     | LiveBoardClient 내                                                                        | P1.4-LiveBoard              | 네트워크 복구 테스트                          | ✅ 완료           |
+| P1.4-E2E         | live-kpi.spec.ts (100 INSERT, NTP-offset 보정, p95 < 4500ms) — 합성 검증 parked              | `tests/e2e/live-kpi.spec.ts`, `live-board.spec.ts`, `tests/helpers/admin-pg.ts`           | P1.4-LiveBoard              | dogfooding 텔레메트리 우선; 회귀 시 재가동    | ⏸️ parked         |
+| P1.4-E2          | 점수 프리뷰 (Step 3)                                                                         | SendRecordModal                                                                           | P1.3-SendModal              | ranked에서만 표시, casual 별도 카피           | ⏳ Phase 1.3에서  |
+| P1.4-E3          | 누적 카운터                                                                                  | LiveBoardPage                                                                             | P1.4-Realtime               | ranked sends만 count                          | ⏳ Phase 1.3 후속 |
 
 ### §1.5 운영 안전망
 
@@ -696,13 +698,13 @@ jobs:
 
 ## 20. Risk 표 + 완화
 
-| #   | Risk                    | 영향        | 확률 | 완화                                                                                          |
-| --- | ----------------------- | ----------- | ---- | --------------------------------------------------------------------------------------------- |
-| R1  | Realtime p95 5초 미달   | P1 KPI 실패 | 중   | Phase 1.4 조기 구현으로 빨리 측정. 1분 fallback fetch 보험. Supabase 지역(ap-northeast) 확인. |
-| R2  | RLS 우회 (데이터 누설)  | 보안        | 저   | service-role 사용처 최소화 (send_revisions + SSE만). RLS 통합 테스트 CI.                      |
-| R3  | Supabase 비용 폭주      | 운영        | 저   | Realtime connections 모니터링. display_tokens 만료 cleanup. Phase 1 N=5이므로 위험 낮음.      |
-| R4  | NextAuth 쿠키 공유 실패 | 인증 불가   | 중   | Phase 0.4에서 가장 먼저 검증 (P0.4-NextAuth). v5와 v4 secret 호환 테스트.                     |
-| R5  | E5 SSE 연결 누수        | 서버 부하   | 저   | Vercel Edge streaming 자동 종료. token 만료 시 강제 disconnect. AbortController 패턴.         |
+| #   | Risk                    | 영향        | 확률 | 완화                                                                                                                                                              |
+| --- | ----------------------- | ----------- | ---- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Realtime p95 5초 미달   | P1 KPI 실패 | 중   | Phase 1.4 조기 구현으로 빨리 가동 + dogfooding console 텔레메트리(`[kpi-realtime-delta]`)로 자연 누적. 1분 fallback fetch 보험. Supabase 지역(ap-northeast) 확인. |
+| R2  | RLS 우회 (데이터 누설)  | 보안        | 저   | service-role 사용처 최소화 (send_revisions + SSE만). RLS 통합 테스트 CI.                                                                                          |
+| R3  | Supabase 비용 폭주      | 운영        | 저   | Realtime connections 모니터링. display_tokens 만료 cleanup. Phase 1 N=5이므로 위험 낮음.                                                                          |
+| R4  | NextAuth 쿠키 공유 실패 | 인증 불가   | 중   | Phase 0.4에서 가장 먼저 검증 (P0.4-NextAuth). v5와 v4 secret 호환 테스트.                                                                                         |
+| R5  | E5 SSE 연결 누수        | 서버 부하   | 저   | Vercel Edge streaming 자동 종료. token 만료 시 강제 disconnect. AbortController 패턴.                                                                             |
 
 ---
 

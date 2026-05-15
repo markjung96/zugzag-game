@@ -160,11 +160,10 @@ Phase 1.4 완료 산출물 (코드):
 - `tests/unit/realtime-schemas.test.ts` 추가.
 - typecheck + lint + unit test 모두 green.
 
-⏳ 사용자 액션 필요:
+P1.4 KPI 측정 방식 (2026-05-15 결정):
 
-1. `.env.local`에 `SUPABASE_JWT_SECRET` 추가 (Supabase Dashboard → API Settings → JWT Secret 복사).
-2. e2e fixture row 생성: Supabase SQL Editor 또는 `tests/helpers/admin-pg.ts` 활용. ID들을 `.env.local`의 `SEED_TEST_*`에 복사.
-3. `pnpm test:kpi` 실행 → p95 5초 반영 KPI 측정 결과 확인. 통과 못하면 R# 회귀 핸들링.
-4. (선택) `pnpm test:integration` — POSTGRES_URL_ADMIN 이미 .env.local에 추가됨.
+- 합성 e2e (`tests/e2e/live-kpi.spec.ts`)는 회귀 검증용으로 parked. 평상시 실행 안 함.
+- 평시 측정: `LiveBoardClient`가 production 빌드에서도 Realtime payload 도착마다 `console.info('[kpi-realtime-delta]', { sendId, deltaMs })` 송출. dogfooding 중 자연 누적.
+- Phase 2 진입 직전: 멤버 콘솔 또는 (추후 도입할) Axiom 로그에서 `[kpi-realtime-delta]` 추출 → p95 산출.
 
 다음: Phase 1.3 (멤버 화면, SendModal/ProblemBoard) → Phase 1.2 (운영자 + PolicyCRUD가 기본 정책 생성 UI 담당) → Phase 1.5/1.6.
